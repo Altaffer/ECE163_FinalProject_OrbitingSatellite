@@ -4,15 +4,20 @@
 import math
 from ece163.Utilities import MatrixMath
 
+"""
+Editing Notes:
+5/28 5:00pm - Richie - added initial NED
+"""
+
 # SIMULATION PROFILE
 dT = 1/100	# Time step for simulation
 
 # ** we will probably want to have a reference point for NED along path of the origin **
+# ** reference point would have a pd of zero, so the altitude of the sat will be -pd **
 InitialSpeed = 0	# [m/s]
-InitialHeight = 0	# [m]
-InitialNorthPosition = 0.0	# displacement to north [m]
-InitialEastPosition = 0.0	# displacement to east [m]
-InitialDownPosition = 0	# [m], negative is above ground
+InitialNorth = 0.0  # displacement to north [m]
+InitialEast = 0.0   # displacement to east [m]
+InitialDown = 0.0	 # [m], negative is above ground
 InitialYawAngle = math.radians(0.0)	# initial heading angle [rad]
 
 

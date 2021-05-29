@@ -4,7 +4,7 @@ Authors: Orbiting Satellite Group
 This class defines the Gravitational model for the vehicle, which includes the gravity model, the forces
 on the vehicle,
 """
-
+import pymap3d as pm
 import math
 from ..Containers import States
 from ..Containers import Inputs
@@ -13,17 +13,34 @@ from ..Utilities import MatrixMath as mm
 from ..Utilities import Rotations
 from ..Constants import VehiclePhysicalConstants as VPC
 
+"""
+Editing Notes:
+5/28 5:00pm - Richie - adding gravityForces and init - UNTESTED so may be trash atm
+"""
+
 class VehicleGravitationalModel():
-    def __init__(self):
+    def __init__(self, initialNorth=VPC.InitialNorth, initialEast=VPC.InitialEast, initialDown=VPC.InitialDown):
         """
         Initialization of the internal classes which are used to track the vehicle gravitational dynamics and dynamics.
 
         Parameters
-        none
+        initialNorth - initial north position of the vehicle [m]
+        initialEast - initial east position of the vehicle [m]
+        initialSouth - initial south position of the vehicle [m]
 
         Returns
         none
         """
+        #instantiate initial positions
+        self.initialNorth = initialNorth
+        self.initialEast = initialEast
+        self.initialDown = initialDown
+
+        #create a dynamics model to function on
+        self.VehicleDynamicsModel = VehicleDynamicsModel.VehicleDynamicsModel(initialNorth=self.initialNorth,
+                                                                              initialEast=self.initialEast,
+                                                                              initialDown=self.initialDown)
+
         return
 
     def gravityForces(self, state):
@@ -38,7 +55,25 @@ class VehicleGravitationalModel():
         gravity forces, forcesMoments class
         """
 
-        return
+        #create a class to return
+        gravityForces = Inputs.forcesMoments()
+
+        #using the gravity model, equation 6.5 in Giancoli, 4.2 in Fortesque
+        Fg = VPC.G * (VPC.mass * VPC.mass_e) / ((-state.pd + VPC.radius_e) ** 2)    #-pd + rad_earth should be distance
+                                                                                    #from center of masses
+
+        #now, considering the inertial direction of gravity will always be down,
+        Fg_inertial = [[0],[0],[Fg]]
+
+        #rotate into the satellite body frame
+        Fg_body = mm.multiply(Rotations.euler2DCM(state.yaw, state.pitch, state.roll), Fg_inertial)
+
+        #now partition the body frame forces into the class to return
+        gravityForces.Fx = Fg_body[0][0]
+        gravityForces.Fy = Fg_body[1][0]
+        gravityForces.Fz = Fg_body[2][0]
+
+        return gravityForces
 
     def calculateThrustersForces(self, ThrusterX, ThrusterY, ThrusterZ):
         """
