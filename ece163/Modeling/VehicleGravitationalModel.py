@@ -85,8 +85,18 @@ class VehicleGravitationalModel():
         Returns
         thruster forces, a forcesMoments class
         """
+        # return class
+        thrustersForces = Inputs.forcesMoments()
 
-        return
+        # the thrusters are already aligned with the body frame, so we can directly set the Fx, Fy, and Fz
+        thrustersForces.Fx = VPC.C_thruster*ThrusterX
+        thrustersForces.Fy = VPC.C_thruster*ThrusterY
+        thrustersForces.Fz = VPC.C_thruster*ThrusterZ
+
+        # we are also assuming that the thrusters are perfectly aligned with Center of Mass so they introduce
+        # no moment to the satellite
+
+        return thrustersForces
 
     def calculateReactionWheelForces(self, ReactionX, ReactionY, ReactionZ):
         """

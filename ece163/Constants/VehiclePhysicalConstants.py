@@ -40,3 +40,7 @@ Jxz = 0.00  # [kg m^2]
 Jbody = [[Jxx, 0., -Jxz], [0., Jyy, 0.], [-Jxz, 0., Jzz]]
 Jdet = (Jxx * Jzz - Jxz ** 2)
 JinvBody = MatrixMath.scalarMultiply(1. / Jdet, [[Jzz, 0., Jxz], [0., Jdet / Jyy, 0.], [Jxz, 0., Jxx]])
+
+# Constant relaying a thruster command to newtons generated
+# This is an arbitrary thruster constant we can modify later
+C_thruster = 20
