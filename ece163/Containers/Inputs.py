@@ -43,6 +43,22 @@ class forcesMoments:
 		else:
 			return NotImplemented
 
+	def __add__(self, other):
+		if isinstance(other, type(self)):
+			sum = forcesMoments()
+			sum.Fx = self.Fx + other.Fx
+			sum.Fy = self.Fy + other.Fy
+			sum.Fz = self.Fz + other.Fz
+
+			sum.Mx = self.Mx + other.Mx
+			sum.My = self.My + other.My
+			sum.Mz = self.Mz + other.Mz
+
+			return sum
+		else:
+			print("ERROR: Trying to add forcesMoments object and non-forcesMoments object")
+			return NotImplemented
+
 
 class controlInputs:
 	def __init__(self, ThrusterX=0.5, ThrusterY=0.0, ThrusterZ=0.0, ReactionX=0.0, ReactionY=0.0, ReactionZ=0.0):
