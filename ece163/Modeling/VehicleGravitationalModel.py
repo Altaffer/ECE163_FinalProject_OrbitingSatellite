@@ -13,11 +13,6 @@ from ..Utilities import MatrixMath as mm
 from ..Utilities import Rotations
 from ..Constants import VehiclePhysicalConstants as VPC
 
-"""
-Editing Notes:
-5/28 5:00pm - Richie - adding gravityForces and init - UNTESTED so may be trash atm
-"""
-
 class VehicleGravitationalModel():
     def __init__(self, initialNorth=VPC.InitialNorth, initialEast=VPC.InitialEast, initialDown=VPC.InitialDown):
         """
@@ -136,8 +131,15 @@ class VehicleGravitationalModel():
         Returns
         reaction wheel forces, a forces moments class
         """
+        # return class
+        reactionWheelForces = Inputs.forcesMoments()
 
-        return
+        # Because the reaction wheels are on axis, the moments Mx, My, and Mz are just functions of the control input
+        reactionWheelForces.Mx = VPC.C_reaction * ReactionX
+        reactionWheelForces.My = VPC.C_reaction * ReactionY
+        reactionWheelForces.Mz = VPC.C_reaction * ReactionZ
+
+        return reactionWheelForces
 
     def disturbanceForces(self, state):
         """
