@@ -4,11 +4,6 @@
 import math
 from ece163.Utilities import MatrixMath
 
-"""
-Editing Notes:
-5/28 5:00pm - Richie - added initial NED
-"""
-
 # SIMULATION PROFILE
 dT = 1/100	# Time step for simulation
 
@@ -41,6 +36,11 @@ Jbody = [[Jxx, 0., -Jxz], [0., Jyy, 0.], [-Jxz, 0., Jzz]]
 Jdet = (Jxx * Jzz - Jxz ** 2)
 JinvBody = MatrixMath.scalarMultiply(1. / Jdet, [[Jzz, 0., Jxz], [0., Jdet / Jyy, 0.], [Jxz, 0., Jxx]])
 
-# Constant relaying a thruster command to newtons generated
-# This is an arbitrary thruster constant we can modify later
-C_thruster = 20
+# THRUSTER profile
+Thruster_min = 0.00  # minimum thruster value [N]
+Thruster_max = 0.00  # maximum thruster value [N]
+C_thruster = Thruster_max - Thruster_min  # Constant relaying a thruster command to newtons generated
+
+# ** because thruster control does not always operate on a range from 0 -> thruster_max, the following equation can be
+# used: Fthrust = (C_thruster * control) + Thruster_min  -->  with corner cases being negative control (subtract Thruster
+# min) and zero control (Fthrust = 0)

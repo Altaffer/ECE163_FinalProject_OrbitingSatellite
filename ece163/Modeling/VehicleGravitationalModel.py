@@ -96,9 +96,30 @@ class VehicleGravitationalModel():
         thrustersForces = Inputs.forcesMoments()
 
         # the thrusters are already aligned with the body frame, so we can directly set the Fx, Fy, and Fz
-        thrustersForces.Fx = VPC.C_thruster*ThrusterX
-        thrustersForces.Fy = VPC.C_thruster*ThrusterY
-        thrustersForces.Fz = VPC.C_thruster*ThrusterZ
+        # Fx from thruster x
+        if ThrusterX == 0:
+            thrustersForces.Fx = 0  # corner case where if the control is zero, the thrust is zero
+        elif ThrusterX < 0:
+            thrustersForces.Fx = (VPC.C_thruster*ThrusterX) - VPC.Thruster_min  # corner case for negative thrust
+        else:
+            thrustersForces.Fx = (VPC.C_thruster * ThrusterX) + VPC.Thruster_min  # standard thrust equation (from VPC)
+
+        # Fy from thruster y
+        if ThrusterY == 0:
+            thrustersForces.Fy = 0  # corner case where if the control is zero, the thrust is zero
+        elif ThrusterY < 0:
+            thrustersForces.Fy = (VPC.C_thruster*ThrusterY) - VPC.Thruster_min  # corner case for negative thrust
+        else:
+            thrustersForces.Fy = (VPC.C_thruster * ThrusterY) + VPC.Thruster_min  # standard thrust equation (from VPC)
+
+        # Fz from thruster z
+        if ThrusterZ == 0:
+            thrustersForces.Fz = 0  # corner case where if the control is zero, the thrust is zero
+        elif ThrusterZ < 0:
+            thrustersForces.Fz = (VPC.C_thruster*ThrusterZ) - VPC.Thruster_min  # corner case for negative thrust
+        else:
+            thrustersForces.Fz = (VPC.C_thruster * ThrusterZ) + VPC.Thruster_min  # standard thrust equation (from VPC)
+
 
         # we are also assuming that the thrusters are perfectly aligned with Center of Mass so they introduce
         # no moment to the satellite
