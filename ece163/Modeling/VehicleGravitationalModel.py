@@ -35,7 +35,6 @@ class VehicleGravitationalModel():
         self.VehicleDynamicsModel = VehicleDynamicsModel.VehicleDynamicsModel(initialNorth=self.initialNorth,
                                                                               initialEast=self.initialEast,
                                                                               initialDown=self.initialDown)
-
         return
 
     def gravityForces(self, state):
@@ -166,7 +165,19 @@ class VehicleGravitationalModel():
         Returns
         total forces, forcesMoments class
         """
-        return
+        #class to return
+        totalForces = Inputs.forcesMoments()
+
+        #update grav, thrust, reaction, and disturbance forces
+        gravForces = self.gravityForces(state)
+        thrustForces = self.calculateThrustersForces(controls.ThrusterX, controls.ThrusterY, controls.ThrusterZ)
+        reactionForces = self.calculateReactionWheelForces(controls.ReactionX, controls.ReactionY, controls.ReactionZ)
+        disturbanceForces = self.disturbanceForces(state)
+
+        #add all the forces together into total forces
+        totalForces = gravForces + thrustForces + reactionForces + disturbanceForces
+
+        return totalForces
 
     def Update(self, controls):
         """
@@ -180,6 +191,12 @@ class VehicleGravitationalModel():
         Returns
         none, state is updated internally
         """
+        # use the vehicle dynamics model instance state to update the forces
+        newForces = self.updateForces(self.VehicleDynamicsModel.state, controls)
+
+        # use the new forces to update the dynamics model instance, and therefore the current state
+        self.VehicleDynamicsModel.Update(newForces)
+
         return
 
     def reset(self):
@@ -189,6 +206,10 @@ class VehicleGravitationalModel():
         Returns
         none
         """
+        #reset the vehicle dynamics model
+        self.VehicleDynamicsModel = VehicleDynamicsModel.VehicleDynamicsModel(initialNorth=self.initialNorth,
+                                                                              initialEast=self.initialEast,
+                                                                              initialDown=self.initialDown)
         return
 
     def getVehicleDynamicsModel(self):
@@ -198,7 +219,7 @@ class VehicleGravitationalModel():
         Returns
         vehicleDynamicsModel, from VehicleDynamicsModel class
         """
-        return
+        return self.VehicleDynamicsModel
 
     def getVehicleState(self):
         """
@@ -207,7 +228,7 @@ class VehicleGravitationalModel():
         Returns
         vehicle state class
         """
-        return
+        return self.VehicleDynamicsModel.state
 
     def setVehicleState(self, state):
         """
@@ -219,6 +240,8 @@ class VehicleGravitationalModel():
         Returns
         none
         """
+        self.VehicleDynamicsModel.state = state
+
         return
 
 
