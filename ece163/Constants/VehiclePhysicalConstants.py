@@ -44,3 +44,10 @@ C_thruster = Thruster_max - Thruster_min  # Constant relaying a thruster command
 # ** because thruster control does not always operate on a range from 0 -> thruster_max, the following equation can be
 # used: Fthrust = (C_thruster * control) + Thruster_min  -->  with corner cases being negative control (subtract Thruster
 # min) and zero control (Fthrust = 0)
+
+# REACTION WHEEL profile
+Reaction_max = 0.00  # maximum reaction wheel tourque [N*m]
+C_reaction = Reaction_max  # coefficient for getting reaction wheel tourque from control input
+
+# ** the reaction wheel operates linearly unlike the thruster, so the torque is just a proportion (from controls) of the
+# max torque it can apply
