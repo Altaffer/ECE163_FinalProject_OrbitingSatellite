@@ -15,7 +15,7 @@ def orbitalFrameR(orbitVector, state):
     radialVector = mm.vectorNorm(planeRadialVector)
 
     # cross product of the other two basis vectors of the orbital frame
-    tangentialVector = mm.crossProduct(radialVector, orbitVector)
+    tangentialVector = mm.crossProduct(orbitVector, radialVector)
 
     oV_t = mm.transpose(orbitVector)
     rV_t = mm.transpose(radialVector)
