@@ -141,6 +141,28 @@ def vectorNorm(v):
     norm = math.sqrt(sum(x**2 for x in normlist))
     return scalarDivide(norm,v)
 
+def vectorProjection(a,b):
+    """
+    return a vector which is the projection of a onto b
+    implementing https://en.wikipedia.org/wiki/Vector_projection
+    """
+    num  = dotProduct(a,b)[0][0]
+    den = dotProduct(b,b)[0][0]
+    aProj = scalarMultiply((num/den), b)
+
+    return aProj
+
+def vectorRejection(a, b):
+    """
+    Return a vector which is the rejection of a from b
+    aka, the projection of a onto the plane orthonormal to b
+    implementing https://en.wikipedia.org/wiki/Vector_projection
+    """
+    aProj = vectorProjection(a,b)
+
+    aRej = subtract(a, aProj)
+    return aRej
+
 
 def size(A):
     """
