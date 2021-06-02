@@ -7,7 +7,12 @@ This file implements the closed loop control system of the spacecraft
 import math
 from ..Containers import Inputs
 from ..Containers import Controls
-from ..Constants import VehiclePhysicalConstants as VPC
+# from ..Constants import VehiclePhysicalConstants as VPC
+from ..Containers import States
+from ..Utilities import MatrixMath as mm
+from ..Utilities import OrbitalFrame as of
+
+vpcdT = 1/100
 
 class PControl():
     def __init__(self, kp=0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
@@ -34,7 +39,7 @@ class PControl():
 
         return u
 
-    def setPDGains(self, kp=0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
+    def setPGains(self, kp=0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
         #assign kwargs to set the gains
         self.kp = kp
         self.trim = trim
@@ -118,7 +123,7 @@ class PDControl():
         return
 
 class PIControl():
-    def __init__(self, dT=VPC.dT, kp=0.0, ki=0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
+    def __init__(self, dT=vpcdT, kp=0.0, ki=0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
         """
         Functions which implement the PI control with saturation where the integrator has both a reset and an
         anti-windup such that when output saturates, the integration is undone and the output forced the output to the
@@ -211,7 +216,7 @@ class PIControl():
 
         return
 
-    def setPIGains(self, dT=VPC.dT, kp=0.0, ki=0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
+    def setPIGains(self, dT=vpcdT, kp=0.0, ki=0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
         """
         Function to set the gains for the PI control block (including the trim output and the limits)
 
@@ -239,7 +244,7 @@ class PIControl():
         return
 
 class PIDControl():
-    def __init__(self, dT=VPC.dT, kp=0.0, ki=0.0, kd = 0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
+    def __init__(self, dT=vpcdT, kp=0.0, ki=0.0, kd = 0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
         """
         Functions which implement the PID control with saturation where the integrator has both a reset and an
         anti-windup such that when output saturates, the integration is undone and the output forced the output to the
@@ -337,7 +342,7 @@ class PIDControl():
 
         return
 
-    def setPIDGains(self, dT=VPC.dT, kp=0.0, kd=0.0, ki=0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
+    def setPIDGains(self, dT=vpcdT, kp=0.0, kd=0.0, ki=0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
         """
         Function to set the gains for the PID control block (including the trim output and the limits)
 
@@ -366,7 +371,7 @@ class PIDControl():
         return
 
 class VehicleClosedLoopControl():
-    def __init__(self):
+    def __init__(self,  dT=0.01, OrbitVector = [[0],[0],[-1]]):
         """
         Class that implements the entire closed loop control
 
@@ -377,7 +382,51 @@ class VehicleClosedLoopControl():
         none
         """
 
+        self.OrbitVector = OrbitVector
+
+        self.dT = dT
+
+        self.thrustersFromVTangent = PIControl()
+
+        self.VOffsetFromOffset = PDControl()
+        self.thrustersFromVoffset = PControl()
+
+        self.VRadiusFromRadius = PDControl()
+        self.thrustersFromVRadius = PControl()
+
+        self.rollDotFromRoll = PIDControl()
+        self.pitchDotFromPitch = PIDControl()
+        self.yawDotFromYaw = PIDControl()
+
+        self.reactorXfromP = PControl()
+        self.reactorYfromQ = PControl()
+        self.reactorZfromR = PControl()
+
         return
+
+    def setControlGains(self):
+        self.thrustersFromVTangent.setPIGains(dT=self.dT, kp = 0, ki=0, lowLimit=-1, highLimit=1)
+        
+        self.VOffsetFromOffset.setPDGains(kp=0, kd=0, lowLimit=-100, highLimit=100)
+        self.thrustersFromVoffset.setPGains(kp=0, lowLimit=-1, highLimit=1)
+
+        self.VRadiusFromRadius.setPDGains(kp=0, kd=0, lowLimit=-100, highLimit=100)
+        self.thrustersFromVRadius.setPGains(kp=0, lowLimit=-1, highLimit=1)
+
+        self.rollDotFromRoll.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
+        self.pitchDotFromPitch.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
+        self.yawDotFromYaw.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
+
+        self.reactorXfromP.setPGains(kp=0, lowLimit=-1, highLimit=1)
+        self.reactorYfromQ.setPGains(kp=0, lowLimit=-1, highLimit=1)
+        self.reactorZfromR.setPGains(kp=0, lowLimit=-1, highLimit=1)
+
+    def reset(self):
+        self.thrustersFromVTangent.resetIntegrator()
+        self.rollDotFromRoll.resetIntegrator()
+        self.pitchDotFromPitch.resetIntegrator()
+        self.yawDotFromYaw.resetIntegrator()
+
 
     def Update(self):
         """
