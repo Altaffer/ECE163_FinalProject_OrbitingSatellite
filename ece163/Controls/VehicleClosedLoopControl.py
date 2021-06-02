@@ -10,6 +10,7 @@ from ..Containers import Controls
 # from ..Constants import VehiclePhysicalConstants as VPC
 from ..Containers import States
 from ..Utilities import MatrixMath as mm
+from ..Utilities import Rotations
 from ..Utilities import OrbitalFrame as of
 
 vpcdT = 1/100
@@ -371,7 +372,8 @@ class PIDControl():
         return
 
 class VehicleClosedLoopControl():
-    def __init__(self,  dT=0.01, OrbitVector = [[0],[0],[-1]]):
+    def __init__(self,  dT=0.01, OrbitVector = [[0],[0],[-400000]]):
+                                                        #magnitude of vector is equivalent to orbit radius
         """
         Class that implements the entire closed loop control
 
@@ -426,6 +428,36 @@ class VehicleClosedLoopControl():
         self.rollDotFromRoll.resetIntegrator()
         self.pitchDotFromPitch.resetIntegrator()
         self.yawDotFromYaw.resetIntegrator()
+
+    def UpdateControlCommands(self, vehicleState:States.vehicleState):
+        R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
+
+        # Getting Position in Orbital Frame
+        ECI_Pos = [[vehicleState.pn], [vehicleState.pe], [vehicleState.pd]]
+        ORB_Pos = mm.multiply(R_e2o, ECI_Pos)
+
+        # Getting Velocity in Orbital Frame
+        Body_Vel = [[vehicleState.u], [vehicleState.v], [vehicleState.w]]
+        R_b2e = mm.transpose(vehicleState.R)
+        ECI_Vel = mm.multiply(R_b2e, Body_Vel)
+        ORB_Vel = mm.multiply(R_e2o, ECI_Vel)
+
+        # Getting Yaw, Pitch, Roll in Inertial frame
+        yaw = vehicleState.yaw
+        pitch = vehicleState.pitch
+        roll = vehicleState.roll
+
+        # Getting commanded Radius
+        rc = math.hypot(self.OrbitVector[0][0], self.OrbitVector[1][0], self.OrbitVector[2][0])
+
+        # Getting Commanded Velocity
+        a = 9.7 # TODO set to actual acceleration with respect to radius
+        Vc = math.sqrt(a*rc)
+
+        # Getting Commanded Yaw, Pitch, Roll in Inertial Frame
+        yawc, pitchc, rollc = Rotations.dcm2Euler(R_e2o)
+
+        
 
 
     def Update(self):
