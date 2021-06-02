@@ -41,6 +41,12 @@ Thruster_min = 0.00  # minimum thruster value [N]
 Thruster_max = 0.00  # maximum thruster value [N]
 C_thruster = Thruster_max - Thruster_min  # Constant relaying a thruster command to newtons generated
 
+#Distance vectors in ECEF
+earthMoon = [[0], [0], [384e6]]     #Distance from the Earth to the Moon when direction overhead
+earthSun = [[0], [0], [149e9]]      #Distance from the Earth to the Sun when direction overhead
+earthJup = [[0], [0], [588e9]]      #Distance from the Earth to Jupiter when direction overhead
+
+
 # ** because thruster control does not always operate on a range from 0 -> thruster_max, the following equation can be
 # used: Fthrust = (C_thruster * control) + Thruster_min  -->  with corner cases being negative control (subtract Thruster
 # min) and zero control (Fthrust = 0)
