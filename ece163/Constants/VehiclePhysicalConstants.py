@@ -23,14 +23,16 @@ radius_e = 6.37101e6  # radius of the earth [m]
 mass_e = 5.972e24  # mass of earth [kg]
 
 # SPACECRAFT PROFILE FOR: insert_spacecraft_name_here
-mass = 0.00  # [kg]
-A = 0.00  # area of one (of two) solar arrays [m^2]
-A_M = (2 * A) / mass  # area to mass ratio [kg/m^2]
+mass = 10.165  # [kg]
+lengthX = 0.366  # [m]
+lengthChassis = 0.2394  # [m]
+lengthY = 3 * lengthChassis  # [m]
+lengthZ = 0.1062  # [m]
 
-Jxx = 0.00  # [kg m^2]
-Jyy = 0.00  # [kg m^2]
-Jzz = 0.00  # [kg m^2]
-Jxz = 0.00  # [kg m^2]
+Jxx = 0.0969  # [kg m^2]
+Jyy = 0.1235  # [kg m^2]
+Jzz = 0.1918  # [kg m^2]
+Jxz = 0.00  # [kg m^2] ----------------- sad I will have to ask Max abt how to figure this out it is not given
 
 Jbody = [[Jxx, 0., -Jxz], [0., Jyy, 0.], [-Jxz, 0., Jzz]]
 Jdet = (Jxx * Jzz - Jxz ** 2)
