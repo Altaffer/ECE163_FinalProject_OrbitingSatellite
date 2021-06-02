@@ -9,6 +9,39 @@ from ..Containers import Inputs
 from ..Containers import Controls
 from ..Constants import VehiclePhysicalConstants as VPC
 
+class PControl():
+    def __init__(self, kp=0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
+        #initialize keyword arguments
+        self.kp = kp
+        self.trim = trim
+        self.lowLimit = lowLimit
+        self.highLimit = highLimit
+
+        return
+
+    def Update(self, command=0.0, current=0.0):
+        #calculate the error
+        error = command - current
+
+        #calculate u
+        u = self.trim + (self.kp * error)
+
+        #check if u is saturated
+        if u > self.highLimit:
+            u = self.highLimit
+        elif u < self.lowLimit:
+            u = self.lowLimit
+
+        return u
+
+    def setPDGains(self, kp=0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
+        #assign kwargs to set the gains
+        self.kp = kp
+        self.trim = trim
+        self.lowLimit = lowLimit
+        self.highLimit = highLimit
+        return
+
 class PDControl():
     def __init__(self, kp=0.0, kd=0.0, trim=0.0, lowLimit=0.0, highLimit=0.0):
         """
