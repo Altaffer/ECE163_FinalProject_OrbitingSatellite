@@ -15,7 +15,7 @@ from ..Constants import VehiclePhysicalConstants as VPC
 
 class VehicleGravitationalModel():
     def __init__(self, initialNorth=VPC.InitialNorth, initialEast=VPC.InitialEast, initialDown=VPC.InitialDown,
-                 gravity = True, controls = True, disturbances = True):
+                 initialSpeed=VPC.InitialSpeed, gravity = True, controls = True, disturbances = True):
         """
         Initialization of the internal classes which are used to track the vehicle gravitational dynamics and dynamics.
 
@@ -31,11 +31,13 @@ class VehicleGravitationalModel():
         self.initialNorth = initialNorth
         self.initialEast = initialEast
         self.initialDown = initialDown
+        self.initialSpeed = initialSpeed
 
         #create a dynamics model to function on
         self.VehicleDynamicsModel = VehicleDynamicsModel.VehicleDynamicsModel(initialNorth=self.initialNorth,
                                                                               initialEast=self.initialEast,
-                                                                              initialDown=self.initialDown)
+                                                                              initialDown=self.initialDown,
+                                                                              initialSpeed=self.initialSpeed)
         # instantiate kwargs for isolating VGM features for tests
         self.gravity = gravity
         self.controls = controls
@@ -63,8 +65,8 @@ class VehicleGravitationalModel():
                                                                                     #from center of masses
 
         #Gravity is aligned with the vector facing from the satellite to the center of the earth
-        sat_to_earth_vec = [[-state.pn],[-state.pe], [-state.pd]]
-        ste_mag = math.hypot(state.pn, state.pe, state.pd)
+        sat_to_earth_vec = [[-state.pn],[-state.pe], [-state.pd + VPC.radius_e]]
+        ste_mag = math.hypot(-state.pn, -state.pe, -state.pd + VPC.radius_e)
 
         # the vector of unit lenght one pointing from the satellite to earth
         sat_to_earth_norm = mm.scalarDivide(ste_mag, sat_to_earth_vec)
@@ -216,7 +218,8 @@ class VehicleGravitationalModel():
         #reset the vehicle dynamics model
         self.VehicleDynamicsModel = VehicleDynamicsModel.VehicleDynamicsModel(initialNorth=self.initialNorth,
                                                                               initialEast=self.initialEast,
-                                                                              initialDown=self.initialDown)
+                                                                              initialDown=self.initialDown,
+                                                                              initialSpeed=self.initialSpeed)
         return
 
     def getVehicleDynamicsModel(self):
