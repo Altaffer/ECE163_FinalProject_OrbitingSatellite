@@ -14,7 +14,8 @@ from ..Utilities import Rotations
 from ..Constants import VehiclePhysicalConstants as VPC
 
 class VehicleGravitationalModel():
-    def __init__(self, initialNorth=VPC.InitialNorth, initialEast=VPC.InitialEast, initialDown=VPC.InitialDown):
+    def __init__(self, initialNorth=VPC.InitialNorth, initialEast=VPC.InitialEast, initialDown=VPC.InitialDown,
+                 gravity = True, controls = True, disturbances = True):
         """
         Initialization of the internal classes which are used to track the vehicle gravitational dynamics and dynamics.
 
@@ -35,6 +36,11 @@ class VehicleGravitationalModel():
         self.VehicleDynamicsModel = VehicleDynamicsModel.VehicleDynamicsModel(initialNorth=self.initialNorth,
                                                                               initialEast=self.initialEast,
                                                                               initialDown=self.initialDown)
+        # instantiate kwargs for isolating VGM features for tests
+        self.gravity = gravity
+        self.controls = controls
+        self.disturbances = disturbances
+
         return
 
     def gravityForces(self, state):
@@ -168,14 +174,15 @@ class VehicleGravitationalModel():
         #class to return
         totalForces = Inputs.forcesMoments()
 
-        #update grav, thrust, reaction, and disturbance forces
-        gravForces = self.gravityForces(state)
-        thrustForces = self.calculateThrustersForces(controls.ThrusterX, controls.ThrusterY, controls.ThrusterZ)
-        reactionForces = self.calculateReactionWheelForces(controls.ReactionX, controls.ReactionY, controls.ReactionZ)
-        disturbanceForces = self.disturbanceForces(state)
-
-        #add all the forces together into total forces
-        totalForces = gravForces + thrustForces + reactionForces + disturbanceForces
+        #update grav, thrust, reaction, and disturbance forces and add to total forces. Check kwargs
+        if self.gravity:
+            totalForces = totalForces + self.gravityForces(state)
+        if self.controls:
+            totalForces = totalForces + self.calculateThrustersForces(controls.ThrusterX, controls.ThrusterY,
+                                                                      controls.ThrusterZ) + \
+                          self.calculateReactionWheelForces(controls.ReactionX, controls.ReactionY, controls.ReactionZ)
+        if self.disturbances:
+            totalForces = totalForces + self.disturbanceForces(state)
 
         return totalForces
 
