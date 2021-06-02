@@ -393,8 +393,8 @@ class VehicleClosedLoopControl():
         self.VOffsetFromOffset = PDControl()
         self.thrustersFromVoffset = PControl()
 
-        self.VRadiusFromRadius = PDControl()
-        self.thrustersFromVRadius = PControl()
+        self.VRadialFromRadial = PDControl()
+        self.thrustersFromVRadial = PControl()
 
         self.rollDotFromRoll = PIDControl()
         self.pitchDotFromPitch = PIDControl()
@@ -412,8 +412,8 @@ class VehicleClosedLoopControl():
         self.VOffsetFromOffset.setPDGains(kp=0, kd=0, lowLimit=-100, highLimit=100)
         self.thrustersFromVoffset.setPGains(kp=0, lowLimit=-1, highLimit=1)
 
-        self.VRadiusFromRadius.setPDGains(kp=0, kd=0, lowLimit=-100, highLimit=100)
-        self.thrustersFromVRadius.setPGains(kp=0, lowLimit=-1, highLimit=1)
+        self.VRadialFromRadial.setPDGains(kp=0, kd=0, lowLimit=-100, highLimit=100)
+        self.thrustersFromVRadial.setPGains(kp=0, lowLimit=-1, highLimit=1)
 
         self.rollDotFromRoll.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
         self.pitchDotFromPitch.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
@@ -447,17 +447,58 @@ class VehicleClosedLoopControl():
         pitch = vehicleState.pitch
         roll = vehicleState.roll
 
-        # Getting commanded Radius
+        # Getting Yaw, Pitch, Roll dot in inertial frame
+        p = vehicleState.p
+        q = vehicleState.q
+        r = vehicleState.r
+        
+        pqr = mm.transpose([[p, q, r]])
+        weird_matrix = [[1, math.sin(roll)*math.tan(pitch), math.cos(roll)*math.tan(pitch)],
+                        [0, math.cos(roll), -math.sin(roll)],
+                        [0, math.sin(roll)/math.cos(pitch), math.cos(roll)/math.cos(pitch)]]
+        rollpitchyaw_dot = mm.multiply(weird_matrix, pqr)
+        rollDot, pitchDot, yawDot = mm.transpose(rollpitchyaw_dot)[0]
+
+
+        # Getting Commanded Radius
         rc = math.hypot(self.OrbitVector[0][0], self.OrbitVector[1][0], self.OrbitVector[2][0])
 
         # Getting Commanded Velocity
         a = 9.7 # TODO set to actual acceleration with respect to radius
-        Vc = math.sqrt(a*rc)
+        VTan_command = math.sqrt(a*rc)
 
         # Getting Commanded Yaw, Pitch, Roll in Inertial Frame
         yawc, pitchc, rollc = Rotations.dcm2Euler(R_e2o)
 
-        
+        # Getting thruster command along T axis
+        T_ThrusterCommand = self.thrustersFromVTangent.Update(VTan_command, ORB_Vel[0][0])
+
+        # getting thruster command along O axis
+        OffsetVelCommand = self.VOffsetFromOffset.Update(0, ORB_Pos[1][0], ORB_Vel[1][0])
+        O_ThrusterCommand = self.thrustersFromVoffset.Update(OffsetVelCommand, ORB_Vel[1][0])
+
+        # getting thruster command along R axis
+        RadialVelCommand = self.VRadialFromRadial.Update(rc,ORB_Pos[2][0], ORB_Vel[2][0])
+        R_ThrusterCommand = self.thrustersFromVRadial.Update(RadialVelCommand, ORB_Vel[2][0])
+
+        # Getting change in yaw, pitch, roll commands
+        yawDotCommand = self.yawDotFromYaw.Update(yawc, yaw, yawDot)
+        pitchDotCommand = self.pitchDotFromPitch.Update(pitchc, pitch, pitchDot)
+        rollDotCommand = self.rollDotFromRoll.Update(rollc, roll, rollDot)
+
+        # Getting commanded body angular velocity commands
+        eulerDotCommand = [[rollDotCommand], [pitchDotCommand], [yawDotCommand]]
+        weird_matrix_2 = [[1,0,math.sin(pitch)],\
+                          [0, math.cos(roll), math.sin(roll)*math.cos(pitch)],\
+                          [0,-math.sin(roll), math.cos(roll)*math.cos(pitch)]]
+        pqr_command = mm.multiply(weird_matrix_2,eulerDotCommand)
+        pCommand, qCommand, rCommand = mm.transpose(pqr_command)[0]
+
+        # Getting Reaction wheel commands
+        reactorXcommand = self.reactorXfromP.Update(pCommand, p)
+        reactorYcommand = self.reactorYfromQ.Update(qCommand, q)
+        reactorZcommand = self.reactorZfromR.Update(rCommand, r)
+
 
 
     def Update(self):
