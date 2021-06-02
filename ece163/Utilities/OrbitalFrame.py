@@ -1,6 +1,12 @@
 import math
 from ..Utilities import MatrixMath as mm
 
+# ORBITAL FRAME
+# defined as T, O, R axises where the basis vectors are
+# T is the vector tangential to the circular orbit
+# O is the vector normal to the orbital plane
+# R is the radial vector from the center of the earth to the satellite's projection on the orbital plane
+
 def orbitalFrameR(orbitVector, state):
     # The first component of the orbital frame
     # vector normal to the orbital plane
@@ -21,7 +27,7 @@ def orbitalFrameR(orbitVector, state):
     rV_t = mm.transpose(radialVector)
     tV_t = mm.transpose(tangentialVector)
 
-    R_ECI_to_Orbital = [tV_t, oV_t, rV_t]
+    R_ECI_to_Orbital = [tV_t[0], oV_t[0], rV_t[0]]
     R_Orbital_to_ECI = mm.transpose(R_ECI_to_Orbital)
 
     return R_ECI_to_Orbital, R_Orbital_to_ECI
