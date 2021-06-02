@@ -64,15 +64,8 @@ class VehicleGravitationalModel():
         Fg = VPC.G * (VPC.mass * VPC.mass_e) / ((-state.pd + VPC.radius_e) ** 2)    #-pd + rad_earth should be distance
                                                                                     #from center of masses
 
-        #Gravity is aligned with the vector facing from the satellite to the center of the earth
-        sat_to_earth_vec = [[-state.pn],[-state.pe], [-state.pd + VPC.radius_e]]
-        ste_mag = math.hypot(-state.pn, -state.pe, -state.pd + VPC.radius_e)
-
-        # the vector of unit lenght one pointing from the satellite to earth
-        sat_to_earth_norm = mm.scalarDivide(ste_mag, sat_to_earth_vec)
-
         # force of gravity pointing towards the earth from the satellite
-        Fg_inertial = mm.scalarMultiply(Fg, sat_to_earth_norm)
+        Fg_inertial = [[0],[0],[Fg]]
 
         #rotate into the satellite body frame
         Fg_body = mm.multiply(Rotations.euler2DCM(state.yaw, state.pitch, state.roll), Fg_inertial)
