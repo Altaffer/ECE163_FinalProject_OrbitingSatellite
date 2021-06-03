@@ -54,7 +54,3 @@ def satSurfaceArea(state):
     # total surface area
     surf_area = A * math.cos(dot_product)
     return surf_area
-
-def magneticDisturbance(state):
-    """Calculates the disturbance due to the magnetic field of the Earth"""
-
