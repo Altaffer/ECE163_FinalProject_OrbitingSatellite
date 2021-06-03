@@ -436,16 +436,19 @@ class VehicleClosedLoopControl():
         ECI_Pos = [[vehicleState.pn], [vehicleState.pe], [vehicleState.pd]]
         ORB_Pos = mm.multiply(R_e2o, ECI_Pos)
 
+        # Getting Rotation Matrix from body 2 orbital frame
+        R_b2e = mm.transpose(vehicleState.R) # body to inertial is equivalent to body to ECI
+        R_b2o = mm.multiply(R_e2o, R_b2e)
+        R_o2b = mm.transpose(R_b2o)
+
         # Getting Velocity in Orbital Frame
         Body_Vel = [[vehicleState.u], [vehicleState.v], [vehicleState.w]]
-        R_b2e = mm.transpose(vehicleState.R)
         ECI_Vel = mm.multiply(R_b2e, Body_Vel)
         ORB_Vel = mm.multiply(R_e2o, ECI_Vel)
 
-        # Getting Yaw, Pitch, Roll in Inertial frame
-        yaw = vehicleState.yaw
-        pitch = vehicleState.pitch
-        roll = vehicleState.roll
+        # Getting euler angle misalignment between
+        # body frame and orbital frame
+        yaw, pitch, roll = Rotations.dcm2Euler(R_o2b)
 
         # Getting Yaw, Pitch, Roll dot in inertial frame
         p = vehicleState.p
@@ -459,16 +462,12 @@ class VehicleClosedLoopControl():
         rollpitchyaw_dot = mm.multiply(weird_matrix, pqr)
         rollDot, pitchDot, yawDot = mm.transpose(rollpitchyaw_dot)[0]
 
-
         # Getting Commanded Radius
         rc = math.hypot(self.OrbitVector[0][0], self.OrbitVector[1][0], self.OrbitVector[2][0])
 
         # Getting Commanded Velocity
         a = 9.7 # TODO set to actual acceleration with respect to radius
         VTan_command = math.sqrt(a*rc)
-
-        # Getting Commanded Yaw, Pitch, Roll in Inertial Frame
-        yawc, pitchc, rollc = Rotations.dcm2Euler(R_e2o)
 
         # Getting thruster command along T axis
         T_ThrusterCommand = self.thrustersFromVTangent.Update(VTan_command, ORB_Vel[0][0])
@@ -482,9 +481,10 @@ class VehicleClosedLoopControl():
         R_ThrusterCommand = self.thrustersFromVRadial.Update(RadialVelCommand, ORB_Vel[2][0])
 
         # Getting change in yaw, pitch, roll commands
-        yawDotCommand = self.yawDotFromYaw.Update(yawc, yaw, yawDot)
-        pitchDotCommand = self.pitchDotFromPitch.Update(pitchc, pitch, pitchDot)
-        rollDotCommand = self.rollDotFromRoll.Update(rollc, roll, rollDot)
+        # For now, this means perfect alignment with the orbital frame
+        yawDotCommand = self.yawDotFromYaw.Update(0, yaw, yawDot)
+        pitchDotCommand = self.pitchDotFromPitch.Update(0, pitch, pitchDot)
+        rollDotCommand = self.rollDotFromRoll.Update(0, roll, rollDot)
 
         # Getting commanded body angular velocity commands
         eulerDotCommand = [[rollDotCommand], [pitchDotCommand], [yawDotCommand]]
@@ -495,11 +495,16 @@ class VehicleClosedLoopControl():
         pCommand, qCommand, rCommand = mm.transpose(pqr_command)[0]
 
         # Getting Reaction wheel commands
-        reactorXcommand = self.reactorXfromP.Update(pCommand, p)
-        reactorYcommand = self.reactorYfromQ.Update(qCommand, q)
-        reactorZcommand = self.reactorZfromR.Update(rCommand, r)
+        reactorXcontrol = self.reactorXfromP.Update(pCommand, p)
+        reactorYcontrol = self.reactorYfromQ.Update(qCommand, q)
+        reactorZcontrol = self.reactorZfromR.Update(rCommand, r)
 
+        # Converts from desired force in orbital frame to thruster commands in body frame
+        ThrusterVector_orbital = [[T_ThrusterCommand], [O_ThrusterCommand], [R_ThrusterCommand]]
+        ThrusterVector_body = mm.multiply(R_o2b, ThrusterVector_orbital)
+        thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = mm.transpose(ThrusterVector_body)[0]
 
+        return reactorXcontrol, reactorYcontrol, reactorZcontrol, thrusterXcontrol, thrusterYcontrol, thrusterZcontrol
 
     def Update(self):
         """
