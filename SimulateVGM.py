@@ -9,10 +9,10 @@ from ece163.Constants import VehiclePhysicalConstants as VPC
 from ece163.Modeling import VehicleGravitationalModel as VGM
 from  matplotlib  import  pyplot  as plt
 
-def runTest(dT, time, startN, startE, startD, controlSettings, gravityCntrl, controlsCntrl, disturbancesCntrl):
+def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravityCntrl, controlsCntrl, disturbancesCntrl):
     # SIMULATION PROFILE
     gravModel = VGM.VehicleGravitationalModel(initialNorth=startN, initialEast=startE, initialDown=startD,
-                 gravity = gravityCntrl, controls = controlsCntrl, disturbances = disturbancesCntrl)
+                 initialSpeed=startSpeed, gravity = gravityCntrl, controls = controlsCntrl, disturbances = disturbancesCntrl)
 
 
     # GRAPH VARIOUS STATE VALUES OVER 10 SECONDS
@@ -214,4 +214,4 @@ def runTest(dT, time, startN, startE, startD, controlSettings, gravityCntrl, con
 
 #run a test for one day, where it starts at an orbit of 400km (iss orbit) above earth surface.
 #turn off controls and disturbances so only gravity is at play
-runTest(50, 86400, 0, 400e3 + VPC.radius_e, 0, Inputs.controlInputs(), 1, 0, 0)
+#runTest(50, 86400, 0, 400e3 + VPC.radius_e, 0, Inputs.controlInputs(), 1, 0, 0)
