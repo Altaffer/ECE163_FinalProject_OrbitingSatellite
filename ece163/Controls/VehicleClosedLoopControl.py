@@ -504,7 +504,16 @@ class VehicleClosedLoopControl():
         ThrusterVector_body = mm.multiply(R_o2b, ThrusterVector_orbital)
         thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = mm.transpose(ThrusterVector_body)[0]
 
-        return reactorXcontrol, reactorYcontrol, reactorZcontrol, thrusterXcontrol, thrusterYcontrol, thrusterZcontrol
+        controls = Inputs.controlInputs()
+        controls.ThrusterX = thrusterXcontrol
+        controls.ThrusterY = thrusterYcontrol
+        controls.ThrusterZ = thrusterZcontrol
+
+        controls.ReactionX = reactorXcontrol
+        controls.ReactionY = reactorYcontrol
+        controls.ReactionZ = reactorZcontrol
+
+        return controls
 
     def Update(self):
         """
