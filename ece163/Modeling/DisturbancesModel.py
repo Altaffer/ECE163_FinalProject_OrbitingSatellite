@@ -51,17 +51,23 @@ def satSurfaceArea(state):
     """Calculates the surface area of the light from the sun hitting the satellite.
     """
     #area of the satellite
-    A = 100 #VPC.lengthY * VPC.lengthX
-    # rotating the satelites position in the body frame
-    # rot = mm.transpose(Rotations.euler2DCM(state.yaw, state.pitch, state.roll))
+    A = VPC.lengthY * VPC.lengthX
+
+    #orthoganal unit vector to solar array in body frame
     ortho_vector = [0,0,-1]
+
+    #nomalized sun to sat array in body frame
     temp = distanceFromSun(state)
-    sun_vector = [0, 0, 1]
-    #solving for the unit vector
+    sun_vector = [temp[0][0], temp[1][0], temp[2][0]]
+
+    #solving for the unit vectors
     unit_ortho = ortho_vector / np.linalg.norm(ortho_vector)
     unit_sun = sun_vector / np.linalg.norm(sun_vector)
+
     # dot product between both vectors to find angle
     dot_product = np.dot(unit_ortho, unit_sun)
+
     # total surface area
-    surf_area = A * math.fabs(math.cos(dot_product))
+    surf_area = math.fabs(A*dot_product)
+
     return surf_area
