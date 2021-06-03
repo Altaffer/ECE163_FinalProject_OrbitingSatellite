@@ -29,10 +29,10 @@ lengthChassis = 0.2394  # [m]
 lengthY = 3 * lengthChassis  # [m]
 lengthZ = 0.1062  # [m]
 
-Jxx = 0.0969  # [kg m^2]
-Jyy = 0.1235  # [kg m^2]
-Jzz = 0.1918  # [kg m^2]
-Jxz = 0.00  # [kg m^2] ----------------- sad I will have to ask Max abt how to figure this out it is not given
+Jxx = 0.0691  # [kg m^2]
+Jyy = 0.1465  # [kg m^2]
+Jzz = 0.1929  # [kg m^2]
+Jxz = 0.7144  # [kg m^2]
 
 Jbody = [[Jxx, 0., -Jxz], [0., Jyy, 0.], [-Jxz, 0., Jzz]]
 Jdet = (Jxx * Jzz - Jxz ** 2)
