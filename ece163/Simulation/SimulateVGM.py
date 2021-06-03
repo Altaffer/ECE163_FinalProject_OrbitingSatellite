@@ -221,3 +221,4 @@ def runTest(dT, time, startN, startE, startD, controlSettings, gravityCntrl, con
 
     plt.show()
     return
+
