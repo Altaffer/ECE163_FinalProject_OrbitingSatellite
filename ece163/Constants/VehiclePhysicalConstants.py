@@ -38,7 +38,7 @@ Jbody = [[Jxx, 0., -Jxz], [0., Jyy, 0.], [-Jxz, 0., Jzz]]
 Jdet = (Jxx * Jzz - Jxz ** 2)
 JinvBody = MatrixMath.scalarMultiply(1. / Jdet, [[Jzz, 0., Jxz], [0., Jdet / Jyy, 0.], [Jxz, 0., Jxx]])
 
-# THRUSTER profile
+# THRUSTER profile - epulsion nano thruster
 Thruster_min = 10e-6  # minimum thruster value [N]
 Thruster_max = 330e6  # maximum thruster value [N]
 C_thruster = Thruster_max - Thruster_min  # Constant relaying a thruster command to newtons generated
@@ -47,11 +47,6 @@ C_thruster = Thruster_max - Thruster_min  # Constant relaying a thruster command
 # used: Fthrust = (C_thruster * control) + Thruster_min  -->  with corner cases being negative control (subtract Thruster
 # min) and zero control (Fthrust = 0)
 
-#Distance vectors in ECEF
-earthMoon = [[0], [0], [384e6]]     #Distance from the Earth to the Moon when direction overhead
-earthSun = [[0], [0], [149e9]]      #Distance from the Earth to the Sun when direction overhead
-earthJup = [[0], [0], [588e9]]      #Distance from the Earth to Jupiter when direction overhead
-
 # REACTION WHEEL profile - Blue Canyon Technologies - RWP015
 Reaction_max = 0.004  # maximum reaction wheel tourque [N*m]
 Reaction_momentum = 0.015  # momentum of reaction wheel, torque is the rate of change of this [N*m*s]
@@ -59,3 +54,14 @@ C_reaction = Reaction_max  # coefficient for getting reaction wheel tourque from
 
 # ** the reaction wheel operates linearly unlike the thruster, so the torque is just a proportion (from controls) of the
 # max torque it can apply
+
+# DISTURBANCE CONSTANTS
+#Distance vectors in ECEF
+earthMoon = [[0], [0], [384e6]]     #Distance from the Earth to the Moon when direction overhead
+earthSun = [[0], [0], [149e9]]      #Distance from the Earth to the Sun when direction overhead
+earthJup = [[0], [0], [588e9]]      #Distance from the Earth to Jupiter when direction overhead
+
+moonAcc = 7.3e-6  # accleration disturbance caused by moon (mean) [m/s^2]
+sunAcc = 3.5e-6  # accleration disturbance caused by sun (mean) [m/s^2]
+jupAcc = 5.2e-11  # accleration disturbance caused by jupiter (max) [m/s^2]
+radiationAcc = 4.7e-6  # acceleration caused by radiation pressure [(m/s^2) * (m/A)]
