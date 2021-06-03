@@ -9,41 +9,39 @@ from ..Constants import VehiclePhysicalConstants as VPC
 from pymap3d import ecef
 from pymap3d import eci
 
-def distanceFromMoon(p_north, p_east, p_down, lat, lon, height):
+def distanceFromMoon(state):
     """Calculates the vector between the Moon and the satellite by inputting the NED positions of the satellite
     throughout orbit using Earth distances as reference points. Returns normalized vector.
     """
-    # converting inputed NED positions to ecef coordinates
-    xp, yp, zp = ecef.enu2ecef(p_east, p_north, -p_down, lat, lon, height, ell=None, deg=True)
     #finding the difference between earthMoon and earthSatellite(state variables) to find distance
-    moonSat = mm.add(VPC.earthMoon, [[xp], [yp], [zp]])
+    moonSat = mm.subtract(VPC.earthMoon, [[state.pn], [state.pe], [state.pd]])
     #calculating the norm
     norm = math.sqrt((moonSat[0][0] ** 2) + (moonSat[1][0] ** 2) + (moonSat[2][0] ** 2))
-    return norm
+    return mm.scalarDivide(moonSat, norm)
 
-def distanceFromSun(p_north, p_east, p_down, lat, lon, height):
+def distanceFromSun(state):
     """Calculates the vector between the Sun and the satellite by inputting the NED positions of the satellite
     throughout orbit using Earth distances as reference points. Returns normalized vector.
     """
-    #converting inputed NED positions to ecef coordinates
-    xp, yp, zp = ecef.enu2ecef(p_east, p_north, -p_down, lat, lon, height, ell=None, deg=True)
     # finding the difference between earthSun and earthSatellite(state variables) to find distance
-    sunSat = mm.add(VPC.earthSun, [[xp], [yp], [zp]])
+    sunSat = mm.subtract(VPC.earthSun, [[state.pn], [state.pe], [state.pd]])
     # calculating the norm
     norm = math.sqrt((sunSat[0][0] ** 2) + (sunSat[1][0] ** 2) + (sunSat[2][0] ** 2))
-    return norm
+    return mm.scalarDivide(sunSat, norm)
 
-def distanceFromJupiter(p_north, p_east, p_down, lat, lon, height):
+def distanceFromJupiter(state):
     """Calculates the vector between Jupiter and the satellite by inputting the NED positions of the satellite
     throughout orbit using Earth distances as reference points. Returns normalized vector.
     """
-    #converting inputed NED positions to ecef coordinates
-    xp, yp, zp = ecef.enu2ecef(p_east, p_north, -p_down, lat, lon, height, ell=None, deg=True)
     # finding the difference between earthSun and earthSatellite(state variables) to find distance
-    jupSat = mm.add(VPC.earthJup, [[xp], [yp], [zp]])
+    jupSat = mm.add(VPC.earthJup, [[state.pn], [state.pe], [state.pd]])
     # calculating the norm
     norm = math.sqrt((jupSat[0][0] ** 2) + (jupSat[1][0] ** 2) + (jupSat[2][0] ** 2))
-    return norm
+    return mm.scalarDivide(jupSat, norm)
 
-def satSurfaceArea():
-    """Calculates the surface area of the light from the sun hitting the satellite. """
+def satSurfaceArea(state):
+    """Calculates the surface area of the light from the sun hitting the satellite.
+    """
+    # calculating the surface area
+    area = VPC.lengthY * VPC.lengthX * math.sin(state.pitch) * math.cos(state.roll) * math.cos(state.yaw)
+    return area
