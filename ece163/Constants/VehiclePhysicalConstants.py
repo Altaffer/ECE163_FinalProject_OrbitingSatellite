@@ -9,7 +9,7 @@ dT = 1/100	# Time step for simulation
 
 # ** we will probably want to have a reference point for NED along path of the origin **
 # ** reference point would have a pd of zero, so the altitude of the sat will be -pd **
-InitialSpeed = 0	# [m/s]
+InitialSpeed = 0.0	# [m/s]
 InitialNorth = 0.0  # displacement to north [m]
 InitialEast = 0.0   # displacement to east [m]
 InitialDown = 0.0	 # [m], negative is above ground
@@ -39,22 +39,22 @@ Jdet = (Jxx * Jzz - Jxz ** 2)
 JinvBody = MatrixMath.scalarMultiply(1. / Jdet, [[Jzz, 0., Jxz], [0., Jdet / Jyy, 0.], [Jxz, 0., Jxx]])
 
 # THRUSTER profile
-Thruster_min = 0.00  # minimum thruster value [N]
-Thruster_max = 0.00  # maximum thruster value [N]
+Thruster_min = 10e-6  # minimum thruster value [N]
+Thruster_max = 330e6  # maximum thruster value [N]
 C_thruster = Thruster_max - Thruster_min  # Constant relaying a thruster command to newtons generated
+
+# ** because thruster control does not always operate on a range from 0 -> thruster_max, the following equation can be
+# used: Fthrust = (C_thruster * control) + Thruster_min  -->  with corner cases being negative control (subtract Thruster
+# min) and zero control (Fthrust = 0)
 
 #Distance vectors in ECEF
 earthMoon = [[0], [0], [384e6]]     #Distance from the Earth to the Moon when direction overhead
 earthSun = [[0], [0], [149e9]]      #Distance from the Earth to the Sun when direction overhead
 earthJup = [[0], [0], [588e9]]      #Distance from the Earth to Jupiter when direction overhead
 
-
-# ** because thruster control does not always operate on a range from 0 -> thruster_max, the following equation can be
-# used: Fthrust = (C_thruster * control) + Thruster_min  -->  with corner cases being negative control (subtract Thruster
-# min) and zero control (Fthrust = 0)
-
-# REACTION WHEEL profile
-Reaction_max = 0.00  # maximum reaction wheel tourque [N*m]
+# REACTION WHEEL profile - Blue Canyon Technologies - RWP015
+Reaction_max = 0.004  # maximum reaction wheel tourque [N*m]
+Reaction_momentum = 0.015  # momentum of reaction wheel, torque is the rate of change of this [N*m*s]
 C_reaction = Reaction_max  # coefficient for getting reaction wheel tourque from control input
 
 # ** the reaction wheel operates linearly unlike the thruster, so the torque is just a proportion (from controls) of the
