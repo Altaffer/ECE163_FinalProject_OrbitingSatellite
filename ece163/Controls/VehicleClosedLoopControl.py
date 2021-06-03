@@ -374,6 +374,7 @@ class PIDControl():
 class VehicleClosedLoopControl():
     def __init__(self,  dT=0.01, OrbitVector = [[0],[0],[-400000]]):
                                                         #magnitude of vector is equivalent to orbit radius
+                                                        #vector is normal to the orbital plane
         """
         Class that implements the entire closed loop control
 
@@ -384,10 +385,12 @@ class VehicleClosedLoopControl():
         none
         """
 
+        # storing the control vector
         self.OrbitVector = OrbitVector
 
         self.dT = dT
 
+        # initializing controllers
         self.thrustersFromVTangent = PIControl()
 
         self.VOffsetFromOffset = PDControl()
@@ -406,6 +409,7 @@ class VehicleClosedLoopControl():
 
         return
 
+    # TODO set control gains, maybe make a separate class for them
     def setControlGains(self):
         self.thrustersFromVTangent.setPIGains(dT=self.dT, kp = 0, ki=0, lowLimit=-1, highLimit=1)
         
@@ -430,6 +434,7 @@ class VehicleClosedLoopControl():
         self.yawDotFromYaw.resetIntegrator()
 
     def UpdateControlCommands(self, vehicleState:States.vehicleState):
+        # calculating orbital frame based on orbit vector and sat position
         R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
 
         # Getting Position in Orbital Frame
@@ -447,15 +452,17 @@ class VehicleClosedLoopControl():
         ORB_Vel = mm.multiply(R_e2o, ECI_Vel)
 
         # Getting euler angle misalignment between
-        # body frame and orbital frame
+        # orbital frame and body frame
         yaw, pitch, roll = Rotations.dcm2Euler(R_o2b)
 
-        # Getting Yaw, Pitch, Roll dot in inertial frame
+        # body rotation rates
         p = vehicleState.p
         q = vehicleState.q
         r = vehicleState.r
         
+        # Getting Yaw, Pitch, Roll dot in orbital frame
         pqr = mm.transpose([[p, q, r]])
+        # beard 3.3
         weird_matrix = [[1, math.sin(roll)*math.tan(pitch), math.cos(roll)*math.tan(pitch)],
                         [0, math.cos(roll), -math.sin(roll)],
                         [0, math.sin(roll)/math.cos(pitch), math.cos(roll)/math.cos(pitch)]]
@@ -482,12 +489,14 @@ class VehicleClosedLoopControl():
 
         # Getting change in yaw, pitch, roll commands
         # For now, this means perfect alignment with the orbital frame
+        # if we want the satellite facing a different direction, we can adjust the zeros to something else
         yawDotCommand = self.yawDotFromYaw.Update(0, yaw, yawDot)
         pitchDotCommand = self.pitchDotFromPitch.Update(0, pitch, pitchDot)
         rollDotCommand = self.rollDotFromRoll.Update(0, roll, rollDot)
 
         # Getting commanded body angular velocity commands
         eulerDotCommand = [[rollDotCommand], [pitchDotCommand], [yawDotCommand]]
+        # beard 3.2
         weird_matrix_2 = [[1,0,math.sin(pitch)],\
                           [0, math.cos(roll), math.sin(roll)*math.cos(pitch)],\
                           [0,-math.sin(roll), math.cos(roll)*math.cos(pitch)]]
@@ -504,6 +513,7 @@ class VehicleClosedLoopControl():
         ThrusterVector_body = mm.multiply(R_o2b, ThrusterVector_orbital)
         thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = mm.transpose(ThrusterVector_body)[0]
 
+        # formulating control object
         controls = Inputs.controlInputs()
         controls.ThrusterX = thrusterXcontrol
         controls.ThrusterY = thrusterYcontrol
@@ -525,6 +535,8 @@ class VehicleClosedLoopControl():
         Returns
         None
         """
+
+        # TODO link with VGM class somehow
 
         return
 
