@@ -20,7 +20,7 @@ def distanceFromMoon(state):
     #calculating the norm
     norm = mm.scalarDivide(np.linalg.norm(moonSat), moonSat)
     #rotation to body frame
-    rot = mm.multiply(mm.transpose(state.R), norm)
+    rot = mm.multiply(mm.transpose(Rotations.euler2DCM(state.yaw, state.pitch, state.roll)), norm)
     return rot
 
 def distanceFromSun(state):
@@ -32,7 +32,7 @@ def distanceFromSun(state):
     # calculating the norm
     norm = mm.scalarDivide(np.linalg.norm(sunSat), sunSat)
     # rotation to body frame
-    rot = mm.multiply(mm.transpose(state.R), norm)
+    rot = mm.multiply(mm.transpose(Rotations.euler2DCM(state.yaw, state.pitch, state.roll)), norm)
     return rot
 
 def distanceFromJupiter(state):
@@ -44,7 +44,7 @@ def distanceFromJupiter(state):
     # calculating the norm
     norm = mm.scalarDivide(np.linalg.norm(jupSat), jupSat)
     # rotation to body frame
-    rot = mm.multiply(mm.transpose(state.R), norm)
+    rot = mm.multiply(mm.transpose(Rotations.euler2DCM(state.yaw, state.pitch, state.roll)), norm)
     return rot
 
 def satSurfaceArea(state):
