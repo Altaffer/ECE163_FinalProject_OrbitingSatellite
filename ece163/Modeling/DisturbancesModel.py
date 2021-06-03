@@ -3,7 +3,7 @@ Authors: Orbiting Satellite group
 
 This file models the disturbances that the satellite will encounter in the orbit
 """
-
+import math
 from ..Utilities import MatrixMath as mm
 from ..Utilities import Rotations as Rotations
 from ..Constants import VehiclePhysicalConstants as VPC
