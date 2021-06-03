@@ -12,9 +12,11 @@ from ..Modeling import VehicleDynamicsModel
 from ..Utilities import MatrixMath as mm
 from ..Utilities import Rotations
 from ..Constants import VehiclePhysicalConstants as VPC
+from ..Modeling import DisturbancesModel as dist
 
 class VehicleGravitationalModel():
-    def __init__(self, initialNorth=VPC.InitialNorth, initialEast=VPC.InitialEast, initialDown=VPC.InitialDown):
+    def __init__(self, initialNorth=VPC.InitialNorth, initialEast=VPC.InitialEast, initialDown=VPC.InitialDown,
+                 initialSpeed=VPC.InitialSpeed, gravity = True, controls = True, disturbances = True):
         """
         Initialization of the internal classes which are used to track the vehicle gravitational dynamics and dynamics.
 
@@ -30,11 +32,18 @@ class VehicleGravitationalModel():
         self.initialNorth = initialNorth
         self.initialEast = initialEast
         self.initialDown = initialDown
+        self.initialSpeed = initialSpeed
 
         #create a dynamics model to function on
         self.VehicleDynamicsModel = VehicleDynamicsModel.VehicleDynamicsModel(initialNorth=self.initialNorth,
                                                                               initialEast=self.initialEast,
-                                                                              initialDown=self.initialDown)
+                                                                              initialDown=self.initialDown,
+                                                                              initialSpeed=self.initialSpeed)
+        # instantiate kwargs for isolating VGM features for tests
+        self.gravity = gravity
+        self.controls = controls
+        self.disturbances = disturbances
+
         return
 
     def gravityForces(self, state):
@@ -52,13 +61,12 @@ class VehicleGravitationalModel():
         #create a class to return
         gravityForces = Inputs.forcesMoments()
 
-        #using the gravity model, equation 6.5 in Giancoli, 4.2 in Fortesque
-        Fg = VPC.G * (VPC.mass * VPC.mass_e) / ((-state.pd + VPC.radius_e) ** 2)    #-pd + rad_earth should be distance
-                                                                                    #from center of masses
+        # Gravity is aligned with the vector facing from the satellite to the center of the earth
+        sat_to_earth_vec = [[-state.pn], [-state.pe], [-state.pd]]
+        ste_mag = math.hypot(-state.pn, -state.pe, -state.pd)
 
-        #Gravity is aligned with the vector facing from the satellite to the center of the earth
-        sat_to_earth_vec = [[-state.pn],[-state.pe], [-state.pd]]
-        ste_mag = math.hypot(state.pn, state.pe, state.pd)
+        #using the gravity model, equation 6.5 in Giancoli, 4.2 in Fortesque
+        Fg = VPC.G * (VPC.mass * VPC.mass_e) / ((ste_mag) ** 2)
 
         # the vector of unit lenght one pointing from the satellite to earth
         sat_to_earth_norm = mm.scalarDivide(ste_mag, sat_to_earth_vec)
@@ -151,7 +159,24 @@ class VehicleGravitationalModel():
         Returns
         disturbance forces, forcesMoments class
         """
-        return
+        # class to return
+        disturbanceForces = Inputs.forcesMoments()
+
+        #get direction from disturbance model and multiply by force, (m*a)
+        sunGravForce = mm.scalarMultiply(VPC.mass * VPC.sunAcc, dist.distanceFromSun(state))
+        moonGravForce = mm.scalarMultiply(VPC.mass * VPC.moonAcc, dist.distanceFromMoon(state))
+        jupGravForce = mm.scalarMultiply(VPC.mass * VPC.jupAcc, dist.distanceFromJupiter(state))
+
+        #get the surface area projected perpendicular to the sun and multiply by the acceleration and the direction
+        radiationForce = mm.scalarMultiply(VPC.radiationAcc * dist.satSurfaceArea(state),
+                                           mm.scalarMultiply(-1, dist.distanceFromSun(state)))
+
+        #fill forces moments model
+        disturbanceForces.Fx = sunGravForce[0][0] + moonGravForce[0][0] + jupGravForce[0][0] + radiationForce[0][0]
+        disturbanceForces.Fy = sunGravForce[1][0] + moonGravForce[1][0] + jupGravForce[1][0] + radiationForce[1][0]
+        disturbanceForces.Fz = sunGravForce[2][0] + moonGravForce[2][0] + jupGravForce[2][0] + radiationForce[2][0]
+
+        return disturbanceForces
 
     def updateForces(self, state, controls):
         """
@@ -168,14 +193,15 @@ class VehicleGravitationalModel():
         #class to return
         totalForces = Inputs.forcesMoments()
 
-        #update grav, thrust, reaction, and disturbance forces
-        gravForces = self.gravityForces(state)
-        thrustForces = self.calculateThrustersForces(controls.ThrusterX, controls.ThrusterY, controls.ThrusterZ)
-        reactionForces = self.calculateReactionWheelForces(controls.ReactionX, controls.ReactionY, controls.ReactionZ)
-        disturbanceForces = self.disturbanceForces(state)
-
-        #add all the forces together into total forces
-        totalForces = gravForces + thrustForces + reactionForces + disturbanceForces
+        #update grav, thrust, reaction, and disturbance forces and add to total forces. Check kwargs
+        if self.gravity:
+            totalForces = totalForces + self.gravityForces(state)
+        if self.controls:
+            totalForces = totalForces + self.calculateThrustersForces(controls.ThrusterX, controls.ThrusterY,
+                                                                      controls.ThrusterZ) + \
+                          self.calculateReactionWheelForces(controls.ReactionX, controls.ReactionY, controls.ReactionZ)
+        if self.disturbances:
+            totalForces = totalForces + self.disturbanceForces(state)
 
         return totalForces
 
@@ -209,7 +235,8 @@ class VehicleGravitationalModel():
         #reset the vehicle dynamics model
         self.VehicleDynamicsModel = VehicleDynamicsModel.VehicleDynamicsModel(initialNorth=self.initialNorth,
                                                                               initialEast=self.initialEast,
-                                                                              initialDown=self.initialDown)
+                                                                              initialDown=self.initialDown,
+                                                                              initialSpeed=self.initialSpeed)
         return
 
     def getVehicleDynamicsModel(self):

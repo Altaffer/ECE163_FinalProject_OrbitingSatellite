@@ -11,13 +11,9 @@ from ..Utilities import MatrixMath as mm
 from ..Utilities import Rotations
 from ..Constants import VehiclePhysicalConstants as VPC
 
-"""
-Editing Notes:
-5/28 5:00pm - Richie - added initial NED to Init and to Reset - should work fine
-"""
-
 class VehicleDynamicsModel():
-    def __init__(self, dT=VPC.dT, initialNorth=VPC.InitialNorth, initialEast=VPC.InitialEast, initialDown=VPC.InitialDown):
+    def __init__(self, dT=VPC.dT, initialNorth=VPC.InitialNorth, initialEast=VPC.InitialEast, initialDown=VPC.InitialDown,
+                 initialSpeed=VPC.InitialSpeed):
         """
         def __init__(self, dT=VPC.dT): Initializes the class, and sets the time step (needed for Rexp and integration).
         Should keep track of the state and the state derivative internally.
@@ -35,12 +31,13 @@ class VehicleDynamicsModel():
         self.initialNorth = initialNorth
         self.initialEast = initialEast
         self.initialDown = initialDown
+        self.initialSpeed = initialSpeed
 
         #default dt to 0.01
         self.dT = dT
 
         #default states
-        self.state = States.vehicleState(pn=self.initialNorth, pe=self.initialEast, pd=initialDown)
+        self.state = States.vehicleState(pn=self.initialNorth, pe=self.initialEast, pd=initialDown, u=initialSpeed)
 
         #default derivatives
         self.dot = States.vehicleState()
@@ -303,7 +300,7 @@ class VehicleDynamicsModel():
         self.state.pn = self.initialNorth
         self.state.pe = self.initialEast
         self.state.pd = self.initialDown
-        self.state.u = 0.0
+        self.state.u = self.initialSpeed
         self.state.v = 0.0
         self.state.w = 0.0
         self.state.p = 0.0
