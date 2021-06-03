@@ -175,7 +175,7 @@ class VehicleGravitationalModel():
         disturbanceForces.Fx = sunGravForce[0][0] + moonGravForce[0][0] + jupGravForce[0][0] + radiationForce[0][0]
         disturbanceForces.Fy = sunGravForce[1][0] + moonGravForce[1][0] + jupGravForce[1][0] + radiationForce[1][0]
         disturbanceForces.Fz = sunGravForce[2][0] + moonGravForce[2][0] + jupGravForce[2][0] + radiationForce[2][0]
-        
+
         return disturbanceForces
 
     def updateForces(self, state, controls):
