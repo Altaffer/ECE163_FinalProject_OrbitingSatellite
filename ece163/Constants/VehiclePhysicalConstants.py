@@ -23,14 +23,14 @@ radius_e = 6.37101e6  # radius of the earth [m]
 mass_e = 5.972e24  # mass of earth [kg]
 
 # SPACECRAFT PROFILE FOR: insert_spacecraft_name_here
-mass = 0.00  # [kg]
-A = 0.00  # area of one (of two) solar arrays [m^2]
+mass = 10.165  # [kg]
+A = 0.066  # area of one (of two) solar arrays [m^2]
 A_M = (2 * A) / mass  # area to mass ratio [kg/m^2]
 
-Jxx = 0.00  # [kg m^2]
-Jyy = 0.00  # [kg m^2]
-Jzz = 0.00  # [kg m^2]
-Jxz = 0.00  # [kg m^2]
+Jxx = 0.0691  # [kg m^2]
+Jyy = 0.1465  # [kg m^2]
+Jzz = 0.1929  # [kg m^2]
+Jxz = 0.7144  # [kg m^2]
 
 Jbody = [[Jxx, 0., -Jxz], [0., Jyy, 0.], [-Jxz, 0., Jzz]]
 Jdet = (Jxx * Jzz - Jxz ** 2)
@@ -46,7 +46,7 @@ C_thruster = Thruster_max - Thruster_min  # Constant relaying a thruster command
 # min) and zero control (Fthrust = 0)
 
 # REACTION WHEEL profile
-Reaction_max = 0.00  # maximum reaction wheel tourque [N*m]
+Reaction_max = 0.1  # maximum reaction wheel tourque [N*m]
 C_reaction = Reaction_max  # coefficient for getting reaction wheel tourque from control input
 
 # ** the reaction wheel operates linearly unlike the thruster, so the torque is just a proportion (from controls) of the
