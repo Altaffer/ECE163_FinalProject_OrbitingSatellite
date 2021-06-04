@@ -461,7 +461,6 @@ class VehicleClosedLoopControl():
         a = 9.7 # TODO set to actual acceleration with respect to radius
         VTan_command = math.sqrt(a*rc)
 
-
         # Getting thruster command along T axis
         T_ThrusterCommand = self.thrustersFromVTangent.Update(VTan_command, ORB_Vel[0][0])
 
