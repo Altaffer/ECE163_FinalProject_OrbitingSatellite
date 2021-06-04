@@ -34,16 +34,17 @@ class testArgs():
         self.disturbancesCntrl = disturbancesCntrl
         pass
 
-def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravityCntrl, controlsCntrl, disturbancesCntrl):
+def runTest(testArgs):
     # SIMULATION PROFILE
-    gravModel = VGM.VehicleGravitationalModel(initialNorth=startN, initialEast=startE, initialDown=startD,
-                 initialU=startSpeed, gravity = gravityCntrl, controls = controlsCntrl, disturbances = disturbancesCntrl)
+    gravModel = VGM.VehicleGravitationalModel(initialNorth=testArgs.startN, initialEast=testArgs.startE, initialDown=testArgs.startD,
+                                              initialU=testArgs.initialU, initialV=testArgs.initialV, initialW=testArgs.initialW, 
+                                              gravity = testArgs.gravityCntrl, controls = testArgs.controlsCntrl, disturbances = testArgs.disturbancesCntrl)
 
 
     # GRAPH VARIOUS STATE VALUES OVER 10 SECONDS
     # define time steps and total time
-    dT = dT
-    T_tot = time
+    dT = testArgs.dT
+    T_tot = testArgs.time
     n_steps = int(T_tot / dT)
 
     # define datasets
@@ -111,17 +112,17 @@ def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravi
         data_altitude[i] = math.hypot(data_pn[i],data_pe[i],data_pd[i]) - VPC.radius_e
 
         # get forces data
-        if gravityCntrl:
+        if testArgs.gravityCntrl:
             data_Fg_x[i] = gravModel.gravityForces(gravModel.getVehicleState()).Fx / VPC.mass
             data_Fg_y[i] = gravModel.gravityForces(gravModel.getVehicleState()).Fy / VPC.mass
             data_Fg_z[i] = gravModel.gravityForces(gravModel.getVehicleState()).Fz / VPC.mass
 
-        if disturbancesCntrl:
+        if testArgs.disturbancesCntrl:
             data_Fd_x[i] = gravModel.disturbanceForces(gravModel.getVehicleState()).Fx
             data_Fd_y[i] = gravModel.disturbanceForces(gravModel.getVehicleState()).Fy
             data_Fd_z[i] = gravModel.disturbanceForces(gravModel.getVehicleState()).Fz
 
-        if controlsCntrl:
+        if testArgs.controlsCntrl:
             data_Ft_x[i] = gravModel.calculateThrustersForces(controlSettings.ThrusterX, controlSettings.ThrusterY,
                                                               controlSettings.ThrusterZ).Fx
             data_Ft_y[i] = gravModel.calculateThrustersForces(controlSettings.ThrusterX, controlSettings.ThrusterY,
@@ -138,7 +139,7 @@ def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravi
 
 
         # update the gravitational model
-        gravModel.Update(controlSettings)
+        gravModel.Update(testArgs.controlSettings)
 
 
     # PLOT DATA
@@ -191,7 +192,7 @@ def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravi
     speed[1].set_title("altitude")
     speed[1].set(xlabel="time (s)")
 
-    if gravityCntrl:
+    if testArgs.gravityCntrl:
         # fg
         fig, grav = plt.subplots(3, 1, sharex='all')
         grav[0].plot(t_data, data_Fg_x)
@@ -202,7 +203,7 @@ def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravi
         grav[2].set_title("grav acc z")
         grav[2].set(xlabel="time (s)")
 
-    if controlsCntrl:
+    if testArgs.controlsCntrl:
         # ft
         fig, thrust = plt.subplots(3, 1, sharex='all')
         thrust[0].plot(t_data, data_Ft_x)
@@ -223,7 +224,7 @@ def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravi
         reaction[2].set_title("Fr z")
         reaction[2].set(xlabel="time (s)")
 
-    if disturbancesCntrl:
+    if testArgs.disturbancesCntrl:
         # Fd
         fig, disturb = plt.subplots(3, 1, sharex='all')
         disturb[0].plot(t_data, data_Fd_x)

@@ -30,3 +30,4 @@ a.out
 *.iso
 *.dll
 *.pyc
+__pycache__/*
