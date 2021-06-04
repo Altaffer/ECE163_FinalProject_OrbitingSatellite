@@ -15,7 +15,7 @@ from matplotlib import pyplot  as plt
 
 class testArgs():
     def __init__(self, dT=50, time=86400, startOrbitalSpeed=7000, orbitVector=[[0],[0],[-(400000+VPC.radius_e)]], \
-                 orbitStartPosNED=[[0], [400000+VPC.radius_e], [0]], controlGains = VCLC.ControlGains(), \
+                 orbitStartPosNED=[[0], [400000+VPC.radius_e], [0]],  \
                  gravityCntrl=0, controlsCntrl=0, disturbancesCntrl=0, returnECIdata=0, returnTORdata=1):
         self.dT = dT  # time step between each plotted point in seconds
         # this is different from the VGM time step
@@ -44,7 +44,9 @@ class testArgs():
         Rbody2orbital, Rorbital2body = OF.getBodyOrbitalRots(Reci2orbital, Rorbital2eci, state)  # get body rotations
         self.speedUVW = mm.multiply(Rorbital2body, [[startOrbitalSpeed], [0], [0]])  # get the uvw speed from orbit
 
-        self.controlGains = controlGains
+        #controlGains = VCLC.ControlGains(),
+        #self.controlGains = controlGains
+        #self.controlGains
 
         return
 
@@ -61,7 +63,7 @@ def runTest(args: testArgs):
                                               disturbances=args.disturbancesCntrl)
 
     clControl = VCLC.VehicleClosedLoopControl(dT=args.dT, OrbitVector=args.orbitVector)
-    clControl.setControlGains(self.controlGains)
+    clControl.setControlGains()
 
     # GRAPH VARIOUS STATE VALUES OVER time SECONDS
     # define time steps and total time
@@ -152,7 +154,6 @@ def runTest(args: testArgs):
         data_altitude[i] = math.hypot(gravModel.getVehicleState().pn, gravModel.getVehicleState().pe,
                                       gravModel.getVehicleState().pd) - VPC.radius_e
 
-        # TODO 1111111111111111111111111111111111
         #update the controls model
         controls = clControl.UpdateControlCommands(gravModel.getVehicleState())
         # update the gravitational model
