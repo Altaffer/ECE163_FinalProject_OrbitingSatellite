@@ -454,7 +454,7 @@ class VehicleClosedLoopControl():
         rc = math.hypot(self.OrbitVector[0][0], self.OrbitVector[1][0], self.OrbitVector[2][0])
 
         # Getting Commanded Velocity
-        a = 9.7 # TODO set to actual acceleration with respect to radius
+        a = VPC.G*VPC.mass_e/(rc*rc) # TODO set to actual acceleration with respect to radius
         VTan_command = math.sqrt(a*rc)
 
         # Getting thruster command along T axis
