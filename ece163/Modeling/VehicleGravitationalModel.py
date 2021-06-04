@@ -4,7 +4,6 @@ Authors: Orbiting Satellite Group
 This class defines the Gravitational model for the vehicle, which includes the gravity model, the forces
 on the vehicle,
 """
-import pymap3d as pm
 import math
 from ..Containers import States
 from ..Containers import Inputs
@@ -16,7 +15,7 @@ from ..Modeling import DisturbancesModel as dist
 
 class VehicleGravitationalModel():
     def __init__(self, initialNorth=VPC.InitialNorth, initialEast=VPC.InitialEast, initialDown=VPC.InitialDown,
-                 initialSpeed=VPC.InitialSpeed, gravity = True, controls = True, disturbances = True):
+                 initialU=VPC.InitialU,initialV=VPC.InitialV,initialW=VPC.InitialW, gravity = True, controls = True, disturbances = True):
         """
         Initialization of the internal classes which are used to track the vehicle gravitational dynamics and dynamics.
 
@@ -32,13 +31,19 @@ class VehicleGravitationalModel():
         self.initialNorth = initialNorth
         self.initialEast = initialEast
         self.initialDown = initialDown
-        self.initialSpeed = initialSpeed
+        self.initialU = initialU
+        self.initialV = initialV
+        self.initialW = initialW
+
+        
 
         #create a dynamics model to function on
         self.VehicleDynamicsModel = VehicleDynamicsModel.VehicleDynamicsModel(initialNorth=self.initialNorth,
                                                                               initialEast=self.initialEast,
                                                                               initialDown=self.initialDown,
-                                                                              initialSpeed=self.initialSpeed)
+                                                                              initialU = self.initialU, 
+                                                                              initialV = self.initialV, 
+                                                                              initialW = self.initialW)
         # instantiate kwargs for isolating VGM features for tests
         self.gravity = gravity
         self.controls = controls
@@ -236,7 +241,9 @@ class VehicleGravitationalModel():
         self.VehicleDynamicsModel = VehicleDynamicsModel.VehicleDynamicsModel(initialNorth=self.initialNorth,
                                                                               initialEast=self.initialEast,
                                                                               initialDown=self.initialDown,
-                                                                              initialSpeed=self.initialSpeed)
+                                                                              initialU = self.initialU, 
+                                                                              initialV = self.initialV, 
+                                                                              initialW = self.initialW)
         return
 
     def getVehicleDynamicsModel(self):

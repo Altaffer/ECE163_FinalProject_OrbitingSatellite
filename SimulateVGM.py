@@ -1,4 +1,3 @@
-import pymap3d as pm
 import math
 from ece163.Containers import States
 from ece163.Containers import Inputs
@@ -9,16 +8,59 @@ from ece163.Constants import VehiclePhysicalConstants as VPC
 from ece163.Modeling import VehicleGravitationalModel as VGM
 from  matplotlib  import  pyplot  as plt
 
-def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravityCntrl, controlsCntrl, disturbancesCntrl):
+
+# TO RUN TESTS/SIMULATIONS, SCROLL TO THE BOTTOM TO INPUT A TEST
+
+class testArgs():
+    def __init__(self, dT=50, time=86400, \
+        startU=0, startV=0, startW=0, \
+        startPn=0, startPe=0, startPd=0, \
+        startRoll=0, startPitch=0, startYaw=0,\
+        gravityCntrl=0, controlsCntrl=0, disturbancesCntrl=0, \
+        controlSettings=Inputs.controlInputs()):
+        self.dT = dT # time step between each plotted point in seconds
+                     # this is different from the VGM time step
+                     # a dT of 1 would have 100 physics steps
+                     # between each plotted point if the VGM dT = .01
+        self.time = time # duration of the simulation in seconds
+        self.startU = startU # starting velocity in the body frame X
+        self.startV = startV # starting velocity in the body frame Y
+        self.startW = startW # starting velocity in the body frame Z
+        self.startPn = startPn # starting position along ECI X axis
+        self.startPe = startPe # starting position along ECI Y axis
+        self.startPd = startPd # starting position along ECI Z axis
+        self.startRoll = startRoll #starting roll from ECI to body
+        self.startPitch = startPitch #starting pitch from ECI to body
+        self.startYaw = startYaw #starting yaw from ECI to body
+        
+        self.gravityCntrl = gravityCntrl # set to 1 to include gravity forces in simulation
+                                         # set to 0 to ignore gravity forces
+        self.controlsCntrl = controlsCntrl # set to 1 to include control input forces
+                                           # set to 0 to ignore
+        self.disturbancesCntrl = disturbancesCntrl # set to 1 to include disturbances forces
+                                                   # set to 0 to ignore
+        self.controlSettings = controlSettings # static control inputs
+                                               # for example, you could see what happens to the
+                                               # sattelite if one of the thrusters remains permanently at
+                                               # half power
+        return
+
+
+def runTest(args:testArgs):
     # SIMULATION PROFILE
-    gravModel = VGM.VehicleGravitationalModel(initialNorth=startN, initialEast=startE, initialDown=startD,
-                 initialSpeed=startSpeed, gravity = gravityCntrl, controls = controlsCntrl, disturbances = disturbancesCntrl)
+    gravModel = VGM.VehicleGravitationalModel(initialNorth=args.startPn, initialEast=args.startPe, initialDown=args.startPd,
+                                              initialU=args.startU, initialV=args.startV, initialW=args.startW, 
+                                              gravity = args.gravityCntrl, controls = args.controlsCntrl, disturbances = args.disturbancesCntrl)
 
+    gravModel.getVehicleState().yaw = args.startYaw
+    gravModel.getVehicleState().pitch = args.startPitch
+    gravModel.getVehicleState().roll = args.startRoll
 
+    gravModel.getVehicleState().R = Rotations.euler2DCM(args.startYaw, args.startPitch, args.startRoll)
     # GRAPH VARIOUS STATE VALUES OVER 10 SECONDS
     # define time steps and total time
-    dT = dT
-    T_tot = time
+    dT = args.dT
+    T_tot = args.time
     n_steps = int(T_tot / dT)
 
     # define datasets
@@ -86,17 +128,18 @@ def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravi
         data_altitude[i] = math.hypot(data_pn[i],data_pe[i],data_pd[i]) - VPC.radius_e
 
         # get forces data
-        if gravityCntrl:
+        if args.gravityCntrl:
             data_Fg_x[i] = gravModel.gravityForces(gravModel.getVehicleState()).Fx / VPC.mass
             data_Fg_y[i] = gravModel.gravityForces(gravModel.getVehicleState()).Fy / VPC.mass
             data_Fg_z[i] = gravModel.gravityForces(gravModel.getVehicleState()).Fz / VPC.mass
 
-        if disturbancesCntrl:
+        if args.disturbancesCntrl:
             data_Fd_x[i] = gravModel.disturbanceForces(gravModel.getVehicleState()).Fx
             data_Fd_y[i] = gravModel.disturbanceForces(gravModel.getVehicleState()).Fy
             data_Fd_z[i] = gravModel.disturbanceForces(gravModel.getVehicleState()).Fz
 
-        if controlsCntrl:
+        if args.controlsCntrl:
+            controlSettings = args.controlSettings
             data_Ft_x[i] = gravModel.calculateThrustersForces(controlSettings.ThrusterX, controlSettings.ThrusterY,
                                                               controlSettings.ThrusterZ).Fx
             data_Ft_y[i] = gravModel.calculateThrustersForces(controlSettings.ThrusterX, controlSettings.ThrusterY,
@@ -113,7 +156,7 @@ def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravi
 
 
         # update the gravitational model
-        gravModel.Update(controlSettings)
+        gravModel.Update(args.controlSettings)
 
 
     # PLOT DATA
@@ -166,7 +209,7 @@ def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravi
     speed[1].set_title("altitude")
     speed[1].set(xlabel="time (s)")
 
-    if gravityCntrl:
+    if args.gravityCntrl:
         # fg
         fig, grav = plt.subplots(3, 1, sharex='all')
         grav[0].plot(t_data, data_Fg_x)
@@ -177,7 +220,7 @@ def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravi
         grav[2].set_title("grav acc z")
         grav[2].set(xlabel="time (s)")
 
-    if controlsCntrl:
+    if args.controlsCntrl:
         # ft
         fig, thrust = plt.subplots(3, 1, sharex='all')
         thrust[0].plot(t_data, data_Ft_x)
@@ -198,7 +241,7 @@ def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravi
         reaction[2].set_title("Fr z")
         reaction[2].set(xlabel="time (s)")
 
-    if disturbancesCntrl:
+    if args.disturbancesCntrl:
         # Fd
         fig, disturb = plt.subplots(3, 1, sharex='all')
         disturb[0].plot(t_data, data_Fd_x)
@@ -212,6 +255,15 @@ def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravi
     plt.show()
     return
 
-#run a test for one day, where it starts at an orbit of 400km (iss orbit) above earth surface.
-#turn off controls and disturbances so only gravity is at play
-#runTest(50, 86400, 0, 400e3 + VPC.radius_e, 0, Inputs.controlInputs(), 1, 0, 0)
+# A given test can be run by constructing a testArgs class and passing it into the runTest function
+# For a description of what each parameter does, look to the top of the file to view the testArgs class
+# parameter descriptions
+# An example test would be placing the satellite at an orbit of 400km, turning off the controls and disturbances
+# and observing as gravity causes it to plummet towards the earth
+
+args = testArgs()
+args.dT = 50
+args.time = 86400
+args.startPn = 00e3 + VPC.radius_e
+args.gravityCntrl = 1
+runTest(args)

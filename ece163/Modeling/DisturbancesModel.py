@@ -8,8 +8,6 @@ from ..Utilities import MatrixMath as mm
 from ..Utilities import Rotations as Rotations
 from ..Constants import VehiclePhysicalConstants as VPC
 import numpy as np
-from pymap3d import ecef
-from pymap3d import eci
 
 def distanceFromMoon(state):
     """Calculates the vector between the Moon and the satellite by inputting the NED positions of the satellite
