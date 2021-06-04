@@ -264,6 +264,6 @@ def runTest(args:testArgs):
 args = testArgs()
 args.dT = 50
 args.time = 86400
-args.startPn = 00e3 + VPC.radius_e
+args.startPn = 400e3 + VPC.radius_e
 args.gravityCntrl = 1
 runTest(args)
