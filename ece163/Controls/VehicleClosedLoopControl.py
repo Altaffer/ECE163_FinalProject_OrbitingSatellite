@@ -426,7 +426,7 @@ class VehicleClosedLoopControl():
 
         self.rollDotFromRoll.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
         self.pitchDotFromPitch.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
-        self.yawDotFromYaw.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
+        self.yawDotFromYaw.setPIDGains(dT=self.dT, kp=0,kd=3,ki=-1, lowLimit=-3.14, highLimit=3.14)
 
         self.reactorXfromP.setPGains(kp=0, lowLimit=-1, highLimit=1)
         self.reactorYfromQ.setPGains(kp=0, lowLimit=-1, highLimit=1)
@@ -438,9 +438,9 @@ class VehicleClosedLoopControl():
         self.pitchDotFromPitch.resetIntegrator()
         self.yawDotFromYaw.resetIntegrator()
 
-    def controlPosition(self, vehicleState:States.vehicleState):
+    def controlPosition(self, vehicleState:States.vehicleState, R_e2o, R_o2e):
         # calculating orbital frame based on orbit vector and sat position
-        R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
+        # R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
         # Getting Rotation Matrix from body 2 orbital frame
         R_b2e = mm.transpose(vehicleState.R) # body to inertial is equivalent to body to ECI
         R_b2o = mm.multiply(R_e2o, R_b2e)
@@ -475,9 +475,9 @@ class VehicleClosedLoopControl():
 
         return thrusterXcontrol, thrusterYcontrol, thrusterZcontrol
 
-    def controlOrientation(self, vehicleState:States.vehicleState):
+    def controlOrientation(self, vehicleState:States.vehicleState, R_e2o, R_o2e):
         # calculating orbital frame based on orbit vector and sat position
-        R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
+        # R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
         # Getting Rotation Matrix from body 2 orbital frame
         R_b2e = mm.transpose(vehicleState.R) # body to inertial is equivalent to body to ECI
         R_b2o = mm.multiply(R_e2o, R_b2e)
@@ -509,8 +509,9 @@ class VehicleClosedLoopControl():
 
 
     def UpdateControlCommands(self, vehicleState:States.vehicleState):
-        thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = self.controlPosition(vehicleState)
-        reactorXcontrol, reactorYcontrol, reactorZcontrol    = self.controlOrientation(vehicleState)
+        R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
+        thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = self.controlPosition(vehicleState,R_e2o, R_o2e)
+        reactorXcontrol, reactorYcontrol, reactorZcontrol    = self.controlOrientation(vehicleState,R_e2o, R_o2e)
 
         # formulating control object
         controls = Inputs.controlInputs()
