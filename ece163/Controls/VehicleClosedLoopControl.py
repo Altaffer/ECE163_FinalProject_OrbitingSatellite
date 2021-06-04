@@ -421,7 +421,7 @@ class VehicleClosedLoopControl():
 
         self.reactorXFromRoll.setPIDGains(dT=self.dT, kp=-6,kd=-25,ki=-.001, lowLimit=-1, highLimit=1)
         self.reactorYFromPitch.setPIDGains(dT=self.dT, kp=-6,kd=-25,ki=-.001, lowLimit=-1, highLimit=1)
-        self.reactorZFromYaw.setPIDGains(dT=self.dT, kp=6,kd=0,ki=0, lowLimit=-1, highLimit=1)
+        self.reactorZFromYaw.setPIDGains(dT=self.dT, kp=-6,kd=-25,ki=-.001, lowLimit=-1, highLimit=1)
 
     def reset(self):
         self.thrustersFromVTangent.resetIntegrator()
