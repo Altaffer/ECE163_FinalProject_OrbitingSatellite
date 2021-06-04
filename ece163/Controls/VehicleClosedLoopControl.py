@@ -481,11 +481,7 @@ class VehicleClosedLoopControl():
 
         # Getting commanded body angular velocity commands
         eulerDotCommand = [[rollDotCommand], [pitchDotCommand], [yawDotCommand]]
-        # beard 3.2
-        weird_matrix_2 = [[1,0,math.sin(pitch)],\
-                          [0, math.cos(roll), math.sin(roll)*math.cos(pitch)],\
-                          [0,-math.sin(roll), math.cos(roll)*math.cos(pitch)]]
-        pqr_command = mm.multiply(weird_matrix_2,eulerDotCommand)
+        pqr_command = mm.scalarMultiply(-1, eulerDotCommand)
         pCommand, qCommand, rCommand = mm.transpose(pqr_command)[0]
 
         # Getting Reaction wheel commands
