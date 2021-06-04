@@ -438,7 +438,7 @@ class VehicleClosedLoopControl():
         self.pitchDotFromPitch.resetIntegrator()
         self.yawDotFromYaw.resetIntegrator()
 
-    def UpdateControlCommands(self, vehicleState:States.vehicleState):
+    def controlPosition(self, vehicleState:States.vehicleState):
         # calculating orbital frame based on orbit vector and sat position
         R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
         # Getting Rotation Matrix from body 2 orbital frame
@@ -449,11 +449,7 @@ class VehicleClosedLoopControl():
         # Getting state variables in terms of orbital frame
         # which are used for the controller
         ORB_Pos, ORB_Vel = of.getOrbitalAxisVals(R_e2o, R_o2e, vehicleState)
-        yaw, pitch, roll, yawDot, pitchDot, rollDot = of.getOrbitalAngularVals(R_e2o, R_o2e, vehicleState)
-        p = vehicleState.p
-        q = vehicleState.q
-        r = vehicleState.r
-
+        
         # Getting Commanded Radius
         rc = math.hypot(self.OrbitVector[0][0], self.OrbitVector[1][0], self.OrbitVector[2][0])
 
@@ -472,6 +468,26 @@ class VehicleClosedLoopControl():
         RadialVelCommand = self.VRadialFromRadial.Update(rc,ORB_Pos[2][0], ORB_Vel[2][0])
         R_ThrusterCommand = self.thrustersFromVRadial.Update(RadialVelCommand, ORB_Vel[2][0])
 
+        # Converts from desired force in orbital frame to thruster commands in body frame
+        ThrusterVector_orbital = [[T_ThrusterCommand], [O_ThrusterCommand], [R_ThrusterCommand]]
+        ThrusterVector_body = mm.multiply(R_o2b, ThrusterVector_orbital)
+        thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = mm.transpose(ThrusterVector_body)[0]
+
+        return thrusterXcontrol, thrusterYcontrol, thrusterZcontrol
+
+    def controlOrientation(self, vehicleState:States.vehicleState):
+        # calculating orbital frame based on orbit vector and sat position
+        R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
+        # Getting Rotation Matrix from body 2 orbital frame
+        R_b2e = mm.transpose(vehicleState.R) # body to inertial is equivalent to body to ECI
+        R_b2o = mm.multiply(R_e2o, R_b2e)
+        R_o2b = mm.transpose(R_b2o)
+
+        yaw, pitch, roll, yawDot, pitchDot, rollDot = of.getOrbitalAngularVals(R_e2o, R_o2e, vehicleState)
+        p = vehicleState.p
+        q = vehicleState.q
+        r = vehicleState.r
+
         # Getting change in yaw, pitch, roll commands
         # For now, this means perfect alignment with the orbital frame
         # if we want the satellite facing a different direction, we can adjust the zeros to something else
@@ -489,10 +505,12 @@ class VehicleClosedLoopControl():
         reactorYcontrol = self.reactorYfromQ.Update(qCommand, q)
         reactorZcontrol = self.reactorZfromR.Update(rCommand, r)
 
-        # Converts from desired force in orbital frame to thruster commands in body frame
-        ThrusterVector_orbital = [[T_ThrusterCommand], [O_ThrusterCommand], [R_ThrusterCommand]]
-        ThrusterVector_body = mm.multiply(R_o2b, ThrusterVector_orbital)
-        thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = mm.transpose(ThrusterVector_body)[0]
+        return reactorXcontrol, reactorYcontrol, reactorZcontrol
+
+
+    def UpdateControlCommands(self, vehicleState:States.vehicleState):
+        thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = self.controlPosition(vehicleState)
+        reactorXcontrol, reactorYcontrol, reactorZcontrol    = self.controlOrientation(vehicleState)
 
         # formulating control object
         controls = Inputs.controlInputs()
