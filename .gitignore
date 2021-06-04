@@ -29,3 +29,5 @@ a.out
 *.img
 *.iso
 *.dll
+*.pyc
+__pycache__/*
