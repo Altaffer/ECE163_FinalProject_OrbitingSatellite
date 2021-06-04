@@ -405,10 +405,6 @@ class ControlGains():
         self.Yaw_ki = Yaw_ki
         self.Yaw_kd = Yaw_kd
 
-        self.P_kp = P_kp
-        self.Q_kp = Q_kp
-        self.R_kp = R_kp
-
         return
 
 
@@ -454,19 +450,9 @@ class VehicleClosedLoopControl():
         self.VRadialFromRadial.setPDGains(kp=CG.Radial_kp, kd=CG.Radial_kd, lowLimit=-100, highLimit=100)
         self.thrustersFromVRadial.setPGains(kp=CG.Vradial_kp, lowLimit=-1, highLimit=1)
 
-<<<<<<< HEAD
-        self.reactorXFromRoll.setPIDGains(dT=self.dT, kp=-6,kd=-25,ki=-.001, lowLimit=-1, highLimit=1)
-        self.reactorYFromPitch.setPIDGains(dT=self.dT, kp=-6,kd=-25,ki=-.001, lowLimit=-1, highLimit=1)
-        self.reactorZFromYaw.setPIDGains(dT=self.dT, kp=-6,kd=-25,ki=-.001, lowLimit=-1, highLimit=1)
-=======
-        self.rollDotFromRoll.setPIDGains(dT=self.dT, kp=CG.Roll_kp,kd=CG.Roll_kd,ki=CG.Roll_ki, lowLimit=-3.14, highLimit=3.14)
-        self.pitchDotFromPitch.setPIDGains(dT=self.dT, kp=CG.Pitch_kp,kd=CG.Pitch_kd,ki=CG.Pitch_ki, lowLimit=-3.14, highLimit=3.14)
-        self.yawDotFromYaw.setPIDGains(dT=self.dT, kp=CG.Yaw_kp,kd=CG.Yaw_ki,ki=CG.Yaw_ki, lowLimit=-3.14, highLimit=3.14)
-
-        self.reactorXfromP.setPGains(kp=CG.P_kp, lowLimit=-1, highLimit=1)
-        self.reactorYfromQ.setPGains(kp=CG.Q_kp, lowLimit=-1, highLimit=1)
-        self.reactorZfromR.setPGains(kp=CG.R_kp, lowLimit=-1, highLimit=1)
->>>>>>> master
+        self.reactorXFromRoll.setPIDGains(dT=self.dT, kp=CG.Roll_kp,kd=CG.Roll_kd,ki=CG.Roll_ki, lowLimit=-3.14, highLimit=3.14)
+        self.reactorYFromPitch.setPIDGains(dT=self.dT, kp=CG.Pitch_kp,kd=CG.Pitch_kd,ki=CG.Pitch_ki, lowLimit=-3.14, highLimit=3.14)
+        self.yreactorZFromYaw.setPIDGains(dT=self.dT, kp=CG.Yaw_kp,kd=CG.Yaw_ki,ki=CG.Yaw_ki, lowLimit=-3.14, highLimit=3.14)
 
     def reset(self):
         self.thrustersFromVTangent.resetIntegrator()
