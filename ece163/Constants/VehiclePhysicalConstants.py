@@ -24,25 +24,15 @@ mass_e = 5.972e24  # mass of earth [kg]
 
 # SPACECRAFT PROFILE FOR: insert_spacecraft_name_here
 mass = 10.165  # [kg]
-<<<<<<< HEAD
-A = 0.066  # area of one (of two) solar arrays [m^2]
-A_M = (2 * A) / mass  # area to mass ratio [kg/m^2]
-
-Jxx = 0.0691  # [kg m^2]
-Jyy = 0.1465  # [kg m^2]
-Jzz = 0.1929  # [kg m^2]
-Jxz = 0.7144  # [kg m^2]
-=======
 lengthX = 0.366  # [m]
 lengthChassis = 0.2394  # [m]
 lengthY = 3 * lengthChassis  # [m]
 lengthZ = 0.1062  # [m]
 
-Jxx = 0.0969  # [kg m^2]
-Jyy = 0.1235  # [kg m^2]
-Jzz = 0.1918  # [kg m^2]
-Jxz = 0.00  # [kg m^2] ----------------- sad I will have to ask Max abt how to figure this out it is not given
->>>>>>> 56c256218827adf0d8bf93f70f57eddc22f8b4fc
+Jxx = 0.0691  # [kg m^2]
+Jyy = 0.1465  # [kg m^2]
+Jzz = 0.1929  # [kg m^2]
+Jxz = 0.7144  # [kg m^2]
 
 Jbody = [[Jxx, 0., -Jxz], [0., Jyy, 0.], [-Jxz, 0., Jzz]]
 Jdet = (Jxx * Jzz - Jxz ** 2)
@@ -57,14 +47,10 @@ C_thruster = Thruster_max - Thruster_min  # Constant relaying a thruster command
 # used: Fthrust = (C_thruster * control) + Thruster_min  -->  with corner cases being negative control (subtract Thruster
 # min) and zero control (Fthrust = 0)
 
-<<<<<<< HEAD
-# REACTION WHEEL profile
-Reaction_max = 0.1  # maximum reaction wheel tourque [N*m]
-=======
+
 # REACTION WHEEL profile - Blue Canyon Technologies - RWP015
 Reaction_max = 0.004  # maximum reaction wheel tourque [N*m]
 Reaction_momentum = 0.015  # momentum of reaction wheel, torque is the rate of change of this [N*m*s]
->>>>>>> 56c256218827adf0d8bf93f70f57eddc22f8b4fc
 C_reaction = Reaction_max  # coefficient for getting reaction wheel tourque from control input
 
 # ** the reaction wheel operates linearly unlike the thruster, so the torque is just a proportion (from controls) of the
