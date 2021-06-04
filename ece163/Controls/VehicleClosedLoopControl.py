@@ -373,7 +373,43 @@ class PIDControl():
 
         return
 
+class ControlGains():
+    def __init__(self, Vtan_kp=0.0, Vtan_ki=0.0, Offset_kp=0.0, Offset_kd=0.0, Voffset_kp=0.0, Radial_kp=0.0,
+                   Radial_kd=0.0, Vradial_kp=0.0, Roll_kp=0.0, Roll_ki=0.0, Roll_kd=0.0, Pitch_kp=0.0, Pitch_ki=0.0,
+                 Pitch_kd=0.0, Yaw_kp=0.0, Yaw_ki=0.0, Yaw_kd=0.0, P_kp=0.0, Q_kp=0.0, R_kp=0.0):
+        """
+        class to store control gains to be used in VCLC
+        """
+        self.Vtan_kp = Vtan_kp
+        self.Vtan_ki = Vtan_ki
 
+        self.Offset_kp = Offset_kp
+        self.Offset_kd = Offset_kd
+
+        self.Voffset_kp = Voffset_kp
+
+        self.Radial_kp = Radial_kp
+        self.Radial_kd = Radial_kd
+
+        self.Vradial_kp = Vradial_kp
+
+        self.Roll_kp = Roll_kp
+        self.Roll_ki = Roll_ki
+        self.Roll_kd = Roll_kd
+
+        self.Pitch_kp = Pitch_kp
+        self.Pitch_ki = Pitch_ki
+        self.Pitch_kd = Pitch_kd
+
+        self.Yaw_kp = Yaw_kp
+        self.Yaw_ki = Yaw_ki
+        self.Yaw_kd = Yaw_kd
+
+        self.P_kp = P_kp
+        self.Q_kp = Q_kp
+        self.R_kp = R_kp
+
+        return
 
 
 class VehicleClosedLoopControl():
@@ -414,23 +450,22 @@ class VehicleClosedLoopControl():
 
         return
 
-    # TODO set control gains, maybe make a separate class for them
-    def setControlGains(self):
-        self.thrustersFromVTangent.setPIGains(dT=self.dT, kp = 0, ki=0, lowLimit=-1, highLimit=1)
+    def setControlGains(self, CG:ControlGains):
+        self.thrustersFromVTangent.setPIGains(dT=self.dT, kp = CG.Vtan_kp, ki=CG.Vtan_ki, lowLimit=-1, highLimit=1)
         
-        self.VOffsetFromOffset.setPDGains(kp=0, kd=0, lowLimit=-100, highLimit=100)
-        self.thrustersFromVoffset.setPGains(kp=0, lowLimit=-1, highLimit=1)
+        self.VOffsetFromOffset.setPDGains(kp=CG.Offset_kp, kd=CG.Offset_kd, lowLimit=-100, highLimit=100)
+        self.thrustersFromVoffset.setPGains(kp=CG.Voffset_kp, lowLimit=-1, highLimit=1)
 
-        self.VRadialFromRadial.setPDGains(kp=0, kd=0, lowLimit=-100, highLimit=100)
-        self.thrustersFromVRadial.setPGains(kp=0, lowLimit=-1, highLimit=1)
+        self.VRadialFromRadial.setPDGains(kp=CG.Radial_kp, kd=CG.Radial_kd, lowLimit=-100, highLimit=100)
+        self.thrustersFromVRadial.setPGains(kp=CG.Vradial_kp, lowLimit=-1, highLimit=1)
 
-        self.rollDotFromRoll.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
-        self.pitchDotFromPitch.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
-        self.yawDotFromYaw.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
+        self.rollDotFromRoll.setPIDGains(dT=self.dT, kp=CG.Roll_kp,kd=CG.Roll_kd,ki=CG.Roll_ki, lowLimit=-3.14, highLimit=3.14)
+        self.pitchDotFromPitch.setPIDGains(dT=self.dT, kp=CG.Pitch_kp,kd=CG.Pitch_kd,ki=CG.Pitch_ki, lowLimit=-3.14, highLimit=3.14)
+        self.yawDotFromYaw.setPIDGains(dT=self.dT, kp=CG.Yaw_kp,kd=CG.Yaw_ki,ki=CG.Yaw_ki, lowLimit=-3.14, highLimit=3.14)
 
-        self.reactorXfromP.setPGains(kp=0, lowLimit=-1, highLimit=1)
-        self.reactorYfromQ.setPGains(kp=0, lowLimit=-1, highLimit=1)
-        self.reactorZfromR.setPGains(kp=0, lowLimit=-1, highLimit=1)
+        self.reactorXfromP.setPGains(kp=CG.P_kp, lowLimit=-1, highLimit=1)
+        self.reactorYfromQ.setPGains(kp=CG.Q_kp, lowLimit=-1, highLimit=1)
+        self.reactorZfromR.setPGains(kp=CG.R_kp, lowLimit=-1, highLimit=1)
 
     def reset(self):
         self.thrustersFromVTangent.resetIntegrator()
