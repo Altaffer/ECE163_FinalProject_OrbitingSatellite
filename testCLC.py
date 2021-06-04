@@ -8,15 +8,6 @@ from ece163.Modeling import VehicleGravitationalModel as VGM
 import math
 from  matplotlib  import  pyplot  as plt
 
-
-# testing runtime errors
-controller = VCLC.VehicleClosedLoopControl()
-controller.setControlGains()
-
-vs = States.vehicleState(pn=1,pe=2,pd=3,u=1)
-
-controller.UpdateControlCommands(vehicleState=vs)
-
 satYaw = 0
 satPitch = 0
 satRoll = 0
@@ -24,7 +15,7 @@ satRoll = 0
 vs = States.vehicleState(yaw=math.radians(satYaw),pitch=math.radians(satPitch),roll=math.radians(satRoll))
 gravModel = VGM.VehicleGravitationalModel(gravity=False, disturbances=False)
 gravModel.setVehicleState(vs)
-gravModel.getVehicleState().p = .007
+# gravModel.getVehicleState().q = .07
 
 controlModel = VCLC.VehicleClosedLoopControl()
 controlModel.setControlGains()
@@ -34,9 +25,9 @@ T_tot = 40
 n_steps = int(T_tot / dT)
 
 # testing control angular
-orbitalYaw = [10 if (i>100) else 0 for i in range(n_steps)]
-orbitalPitch = [0 for i in range(n_steps)]
-orbitalRoll = [0 for i in range(n_steps)]
+orbitalYaw = [0 if (i>100) else 0 for i in range(n_steps)]
+orbitalPitch = [-10 if (i>100) else 0 for i in range(n_steps)]
+orbitalRoll = [0 if (i>100) else 0 for i in range(n_steps)]
 
 # define datasets
 t_data = [i * dT for i in range(n_steps)]
@@ -77,8 +68,8 @@ for i in range(n_steps):
     data_reactorYcontrol[i] = reactorYcontrol
     data_reactorZcontrol[i] = reactorZcontrol
 
-    # controls = Inputs.controlInputs(ThrusterX=0, ReactionX=reactorXcontrol, ReactionY=reactorYcontrol, ReactionZ=reactorZcontrol)
-    controls = Inputs.controlInputs(ThrusterX=0)
+    controls = Inputs.controlInputs(ThrusterX=0, ReactionX=reactorXcontrol, ReactionY=reactorYcontrol, ReactionZ=reactorZcontrol)
+    # controls = Inputs.controlInputs(ThrusterX=0)
 
     gravModel.Update(controls)
 
@@ -89,6 +80,15 @@ angularMisalign[1].plot(t_data, data_yMisalign)
 angularMisalign[1].set_title("y misalign")
 angularMisalign[2].plot(t_data, data_xMisalign)
 angularMisalign[2].set_title("x misalign")
+angularMisalign[2].set(xlabel="time (s)")
+
+fig, angularMisalign = plt.subplots(3, 1, sharex='all')
+angularMisalign[0].plot(t_data, data_reactorZcontrol)
+angularMisalign[0].set_title("z axis reactor")
+angularMisalign[1].plot(t_data, data_reactorYcontrol)
+angularMisalign[1].set_title("y axis reactor")
+angularMisalign[2].plot(t_data, data_reactorXcontrol)
+angularMisalign[2].set_title("x axis reactor")
 angularMisalign[2].set(xlabel="time (s)")
 
 fig, eulerAngles = plt.subplots(3, 1, sharex='all')

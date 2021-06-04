@@ -404,14 +404,9 @@ class VehicleClosedLoopControl():
         self.VRadialFromRadial = PDControl()
         self.thrustersFromVRadial = PControl()
 
-        self.rollDotFromRoll = PIDControl()
-        self.pitchDotFromPitch = PIDControl()
-        self.yawDotFromYaw = PIDControl()
-
-        self.reactorXfromP = PControl()
-        self.reactorYfromQ = PControl()
-        self.reactorZfromR = PControl()
-
+        self.reactorXFromRoll = PIDControl()
+        self.reactorYFromPitch = PIDControl()
+        self.reactorZFromYaw = PIDControl()
         return
 
     # TODO set control gains, maybe make a separate class for them
@@ -424,19 +419,15 @@ class VehicleClosedLoopControl():
         self.VRadialFromRadial.setPDGains(kp=0, kd=0, lowLimit=-100, highLimit=100)
         self.thrustersFromVRadial.setPGains(kp=0, lowLimit=-1, highLimit=1)
 
-        self.rollDotFromRoll.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
-        self.pitchDotFromPitch.setPIDGains(dT=self.dT, kp=0,kd=0,ki=0, lowLimit=-3.14, highLimit=3.14)
-        self.yawDotFromYaw.setPIDGains(dT=self.dT, kp=0,kd=3,ki=-1, lowLimit=-3.14, highLimit=3.14)
-
-        self.reactorXfromP.setPGains(kp=0, lowLimit=-1, highLimit=1)
-        self.reactorYfromQ.setPGains(kp=0, lowLimit=-1, highLimit=1)
-        self.reactorZfromR.setPGains(kp=0, lowLimit=-1, highLimit=1)
+        self.reactorXFromRoll.setPIDGains(dT=self.dT, kp=-6,kd=-25,ki=-.001, lowLimit=-1, highLimit=1)
+        self.reactorYFromPitch.setPIDGains(dT=self.dT, kp=-6,kd=-25,ki=-.001, lowLimit=-1, highLimit=1)
+        self.reactorZFromYaw.setPIDGains(dT=self.dT, kp=6,kd=0,ki=0, lowLimit=-1, highLimit=1)
 
     def reset(self):
         self.thrustersFromVTangent.resetIntegrator()
-        self.rollDotFromRoll.resetIntegrator()
-        self.pitchDotFromPitch.resetIntegrator()
-        self.yawDotFromYaw.resetIntegrator()
+        self.reactorXFromRoll.resetIntegrator()
+        self.reactorYFromPitch.resetIntegrator()
+        self.reactorZFromYaw.resetIntegrator()
 
     def controlPosition(self, vehicleState:States.vehicleState, R_e2o, R_o2e):
         # calculating orbital frame based on orbit vector and sat position
@@ -491,19 +482,9 @@ class VehicleClosedLoopControl():
         # Getting change in yaw, pitch, roll commands
         # For now, this means perfect alignment with the orbital frame
         # if we want the satellite facing a different direction, we can adjust the zeros to something else
-        yawDotCommand = self.yawDotFromYaw.Update(0, yaw, yawDot)
-        pitchDotCommand = self.pitchDotFromPitch.Update(0, pitch, pitchDot)
-        rollDotCommand = self.rollDotFromRoll.Update(0, roll, rollDot)
-
-        # Getting commanded body angular velocity commands
-        eulerDotCommand = [[rollDotCommand], [pitchDotCommand], [yawDotCommand]]
-        pqr_command = mm.scalarMultiply(-1, eulerDotCommand)
-        pCommand, qCommand, rCommand = mm.transpose(pqr_command)[0]
-
-        # Getting Reaction wheel commands
-        reactorXcontrol = self.reactorXfromP.Update(pCommand, p)
-        reactorYcontrol = self.reactorYfromQ.Update(qCommand, q)
-        reactorZcontrol = self.reactorZfromR.Update(rCommand, r)
+        reactorXcontrol = self.reactorXFromRoll.Update(0, roll, rollDot)
+        reactorYcontrol = self.reactorYFromPitch.Update(0, pitch, pitchDot)
+        reactorZcontrol = self.reactorZFromYaw.Update(0, yaw, yawDot)
 
         return reactorXcontrol, reactorYcontrol, reactorZcontrol
 
