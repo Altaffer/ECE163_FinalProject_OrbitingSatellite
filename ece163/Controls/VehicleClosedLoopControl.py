@@ -505,20 +505,3 @@ class VehicleClosedLoopControl():
         controls.ReactionZ = reactorZcontrol
 
         return controls
-
-    def Update(self):
-        """
-        Function that updates the control system
-
-        Parameters
-        none
-
-        Returns
-        None
-        """
-
-        # TODO link with VGM class somehow
-
-        return
-
-
