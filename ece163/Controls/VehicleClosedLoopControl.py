@@ -441,38 +441,18 @@ class VehicleClosedLoopControl():
     def UpdateControlCommands(self, vehicleState:States.vehicleState):
         # calculating orbital frame based on orbit vector and sat position
         R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
-
-        # Getting Position in Orbital Frame
-        ECI_Pos = [[vehicleState.pn], [vehicleState.pe], [vehicleState.pd]]
-        ORB_Pos = mm.multiply(R_e2o, ECI_Pos)
-
         # Getting Rotation Matrix from body 2 orbital frame
         R_b2e = mm.transpose(vehicleState.R) # body to inertial is equivalent to body to ECI
         R_b2o = mm.multiply(R_e2o, R_b2e)
         R_o2b = mm.transpose(R_b2o)
 
-        # Getting Velocity in Orbital Frame
-        Body_Vel = [[vehicleState.u], [vehicleState.v], [vehicleState.w]]
-        ECI_Vel = mm.multiply(R_b2e, Body_Vel)
-        ORB_Vel = mm.multiply(R_e2o, ECI_Vel)
-
-        # Getting euler angle misalignment between
-        # orbital frame and body frame
-        yaw, pitch, roll = Rotations.dcm2Euler(R_o2b)
-
-        # body rotation rates
+        # Getting state variables in terms of orbital frame
+        # which are used for the controller
+        ORB_Pos, ORB_Vel = of.getOrbitalAxisVals(R_e2o, R_o2e, vehicleState)
+        yaw, pitch, roll, yawDot, pitchDot, rollDot = of.getOrbitalAngularVals(R_e2o, R_o2e, vehicleState)
         p = vehicleState.p
         q = vehicleState.q
         r = vehicleState.r
-        
-        # Getting Yaw, Pitch, Roll dot in orbital frame
-        pqr = mm.transpose([[p, q, r]])
-        # beard 3.3
-        weird_matrix = [[1, math.sin(roll)*math.tan(pitch), math.cos(roll)*math.tan(pitch)],
-                        [0, math.cos(roll), -math.sin(roll)],
-                        [0, math.sin(roll)/math.cos(pitch), math.cos(roll)/math.cos(pitch)]]
-        rollpitchyaw_dot = mm.multiply(weird_matrix, pqr)
-        rollDot, pitchDot, yawDot = mm.transpose(rollpitchyaw_dot)[0]
 
         # Getting Commanded Radius
         rc = math.hypot(self.OrbitVector[0][0], self.OrbitVector[1][0], self.OrbitVector[2][0])
@@ -480,6 +460,7 @@ class VehicleClosedLoopControl():
         # Getting Commanded Velocity
         a = 9.7 # TODO set to actual acceleration with respect to radius
         VTan_command = math.sqrt(a*rc)
+
 
         # Getting thruster command along T axis
         T_ThrusterCommand = self.thrustersFromVTangent.Update(VTan_command, ORB_Vel[0][0])
