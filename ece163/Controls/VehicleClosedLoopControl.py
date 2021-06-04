@@ -12,6 +12,8 @@ from ..Containers import States
 from ..Utilities import MatrixMath as mm
 from ..Utilities import Rotations
 from ..Utilities import OrbitalFrame as of
+from ..Constants import VehiclePhysicalConstants as VPC
+
 
 vpcdT = 1/100
 
@@ -371,8 +373,11 @@ class PIDControl():
 
         return
 
+
+
+
 class VehicleClosedLoopControl():
-    def __init__(self,  dT=0.01, OrbitVector = [[0],[0],[-400000]]):
+    def __init__(self,  dT=0.01, OrbitVector = [[0],[0],[-(400000+VPC.radius_e)]]):
                                                         #magnitude of vector is equivalent to orbit radius
                                                         #vector is normal to the orbital plane
         """
