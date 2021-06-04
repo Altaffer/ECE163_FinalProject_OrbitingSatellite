@@ -13,7 +13,7 @@ from ..Constants import VehiclePhysicalConstants as VPC
 
 class VehicleDynamicsModel():
     def __init__(self, dT=VPC.dT, initialNorth=VPC.InitialNorth, initialEast=VPC.InitialEast, initialDown=VPC.InitialDown,
-                 initialSpeed=VPC.InitialSpeed):
+                 initialU=VPC.InitialU,initialV=VPC.InitialV,initialW=VPC.InitialW):
         """
         def __init__(self, dT=VPC.dT): Initializes the class, and sets the time step (needed for Rexp and integration).
         Should keep track of the state and the state derivative internally.
@@ -31,13 +31,15 @@ class VehicleDynamicsModel():
         self.initialNorth = initialNorth
         self.initialEast = initialEast
         self.initialDown = initialDown
-        self.initialSpeed = initialSpeed
+        self.initialU = initialU
+        self.initialV = initialV
+        self.initialW = initialW
 
         #default dt to 0.01
         self.dT = dT
 
         #default states
-        self.state = States.vehicleState(pn=self.initialNorth, pe=self.initialEast, pd=initialDown, u=initialSpeed)
+        self.state = States.vehicleState(pn=self.initialNorth, pe=self.initialEast, pd=initialDown, u=initialU,  v=initialV, w=initialW)
 
         #default derivatives
         self.dot = States.vehicleState()
@@ -300,7 +302,9 @@ class VehicleDynamicsModel():
         self.state.pn = self.initialNorth
         self.state.pe = self.initialEast
         self.state.pd = self.initialDown
-        self.state.u = self.initialSpeed
+        self.state.u = self.initialU
+        self.state.v = self.initialV
+        self.state.w = self.initialW
         self.state.v = 0.0
         self.state.w = 0.0
         self.state.p = 0.0

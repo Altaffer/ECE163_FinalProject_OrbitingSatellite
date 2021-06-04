@@ -1,4 +1,3 @@
-import pymap3d as pm
 import math
 from ece163.Containers import States
 from ece163.Containers import Inputs
@@ -9,10 +8,36 @@ from ece163.Constants import VehiclePhysicalConstants as VPC
 from ece163.Modeling import VehicleGravitationalModel as VGM
 from  matplotlib  import  pyplot  as plt
 
+
+class testArgs():
+    def __init__(self, dT=50, time=86400, \
+        startU=0, startV=0, startW=0, \
+        startN=0, startE=0, startD=0, \
+        startRoll=0, startPitch=0, startYaw=0,\
+        gravityCntrl=0, controlsCntrl=0, disturbancesCntrl=0, \
+        controlSettings=Inputs.controlInputs()):
+        self.dT = dT
+        self.time = time
+        self.startU = startU
+        self.startV = startV
+        self.startW = startW
+        self.startN = startN
+        self.startE = startE
+        self.startD = startD
+        self.startRoll = startRoll
+        self.startPitch = startPitch
+        self.startYaw = startYaw
+        
+        self.controlSettings = controlSettings
+        self.gravityCntrl = gravityCntrl
+        self.controlsCntrl = controlsCntrl
+        self.disturbancesCntrl = disturbancesCntrl
+        pass
+
 def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravityCntrl, controlsCntrl, disturbancesCntrl):
     # SIMULATION PROFILE
     gravModel = VGM.VehicleGravitationalModel(initialNorth=startN, initialEast=startE, initialDown=startD,
-                 initialSpeed=startSpeed, gravity = gravityCntrl, controls = controlsCntrl, disturbances = disturbancesCntrl)
+                 initialU=startSpeed, gravity = gravityCntrl, controls = controlsCntrl, disturbances = disturbancesCntrl)
 
 
     # GRAPH VARIOUS STATE VALUES OVER 10 SECONDS
@@ -214,4 +239,4 @@ def runTest(dT, time, startSpeed, startN, startE, startD, controlSettings, gravi
 
 #run a test for one day, where it starts at an orbit of 400km (iss orbit) above earth surface.
 #turn off controls and disturbances so only gravity is at play
-#runTest(50, 86400, 0, 400e3 + VPC.radius_e, 0, Inputs.controlInputs(), 1, 0, 0)
+runTest(50, 86400, 7660, 0, 400e3 + VPC.radius_e, 0, Inputs.controlInputs(), 1, 0, 0)
