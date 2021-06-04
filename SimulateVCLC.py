@@ -16,7 +16,8 @@ from matplotlib import pyplot  as plt
 class testArgs():
     def __init__(self, dT=50, time=86400, startOrbitalSpeed=7000, orbitVector=[[0],[0],[-(400000+VPC.radius_e)]], \
                  orbitStartPosNED=[[0], [400000+VPC.radius_e], [0]],  controlGains = VCLC.ControlGains(), \
-                 gravityCntrl=0, controlsCntrl=0, disturbancesCntrl=0, returnECIdata=0, returnTORdata=1):
+                 gravityCntrl=0, controlsCntrl=1, disturbancesCntrl=0, returnECIdata=1, returnTORdata=1,
+                 returnCntrlData=1):
         self.dT = dT  # time step between each plotted point in seconds
         # this is different from the VGM time step
         # a dT of 1 would have 100 physics steps
@@ -36,6 +37,8 @@ class testArgs():
         # set to 0 to ignore
         self.returnTORdata = returnTORdata  # set to 1 to return plots of position, uvw, ypr, pqr, in TOR coords
         # set to 0 to ignore
+        self.returnCntrlData = returnCntrlData  # set to 1 to return plots of the controls
+        # set to zero to ignore
 
         #to find the initial speed of the craft in uvw to initialize the VGM, rotate to orbital frame speed to body
         state = States.vehicleState(pn=self.orbitStartPosNED[0][0], pe=self.orbitStartPosNED[1][0],
@@ -99,11 +102,19 @@ def runTest(args: testArgs):
         data_yawdot_tor = [0 for i in range(n_steps)]
         data_pitchdot_tor = [0 for i in range(n_steps)]
         data_rolldot_tor = [0 for i in range(n_steps)]
+    if args.returnCntrlData:
+        data_thrusterX = [0 for i in range(n_steps)]
+        data_thrusterY = [0 for i in range(n_steps)]
+        data_thrusterZ = [0 for i in range(n_steps)]
+        data_reactionX = [0 for i in range(n_steps)]
+        data_reactionY = [0 for i in range(n_steps)]
+        data_reactionZ = [0 for i in range(n_steps)]
 
     # speed/ altitude data
     data_speed = [0 for i in range(n_steps)]
     data_altitude = [0 for i in range(n_steps)]
-    data_set_alt = [math.hypot(args.orbitVector[0][0], args.orbitVector[1][0], args.orbitVector[2][0]) for i in range(n_steps)]
+    data_set_alt = [math.hypot(args.orbitVector[0][0], args.orbitVector[1][0], args.orbitVector[2][0]) - VPC.radius_e
+                    for i in range(n_steps)]
 
     # FILL DATASETS
     # update repeatedly over time interval
@@ -144,7 +155,7 @@ def runTest(args: testArgs):
             data_velr_tor[i] = Orb_vel[2][0]
 
             data_yaw_tor[i], data_pitch_tor[i], data_roll_tor[i], data_yawdot_tor[i], data_pitchdot_tor[i], \
-            data_rolldot_tor[i] = OF.getBodyOrbitalRots(Re2o, Ro2e, gravModel.getVehicleState())
+            data_rolldot_tor[i] = OF.getOrbitalAngularVals(Re2o, Ro2e, gravModel.getVehicleState())
 
         # get speed/location data
         data_speed[i] = math.hypot(gravModel.getVehicleState().u, gravModel.getVehicleState().v,
@@ -154,6 +165,15 @@ def runTest(args: testArgs):
 
         #update the controls model
         controls = clControl.UpdateControlCommands(gravModel.getVehicleState())
+
+        if args.disturbancesCntrl:
+            data_thrusterX[i] = controls.ThrusterX
+            data_thrusterY[i] = controls.ThrusterY
+            data_thrusterZ[i] = controls.ThrusterZ
+            data_reactionX[i] = controls.ReactionX
+            data_reactionY[i] = controls.ReactionY
+            data_reactionZ[i] = controls.ReactionZ
+
         # update the gravitational model
         gravModel.Update(controls)
 
@@ -310,6 +330,27 @@ def runTest(args: testArgs):
         rates[2].set_title("orbital roll dot")
         rates[2].set(xlabel="time (s)")
 
+    if args.returnCntrlData:
+        # thruster controls
+        fig, thrust = plt.subplots(3, 1, sharex='all')
+        thrust[0].plot(t_data, data_thrusterX)
+        thrust[0].set_title("thruster x")
+        thrust[1].plot(t_data, data_thrusterY)
+        thrust[1].set_title("thruster y")
+        thrust[2].plot(t_data, data_thrusterZ)
+        thrust[2].set_title("thruster z")
+        thrust[2].set(xlabel="time (s)")
+
+        # thruster controls
+        fig, reaction = plt.subplots(3, 1, sharex='all')
+        reaction[0].plot(t_data, data_reactionX)
+        reaction[0].set_title("reaction x")
+        reaction[1].plot(t_data, data_reactionY)
+        reaction[1].set_title("reaction y")
+        reaction[2].plot(t_data, data_reactionZ)
+        reaction[2].set_title("reaction z")
+        reaction[2].set(xlabel="time (s)")
+
     # speed and alt
     fig, speed = plt.subplots(2, 1, sharex='all')
     speed[0].plot(t_data, data_speed)
@@ -331,8 +372,4 @@ def runTest(args: testArgs):
 # and observing as gravity causes it to plummet towards the earth
 
 args = testArgs()
-args.dT = 50
-args.time = 86400
-args.startPn = 400e3 + VPC.radius_e
-args.gravityCntrl = 1
 runTest(args)
