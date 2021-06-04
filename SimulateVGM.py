@@ -9,35 +9,47 @@ from ece163.Modeling import VehicleGravitationalModel as VGM
 from  matplotlib  import  pyplot  as plt
 
 
+# TO RUN TESTS/SIMULATIONS, SCROLL TO THE BOTTOM TO INPUT A TEST
+
 class testArgs():
     def __init__(self, dT=50, time=86400, \
         startU=0, startV=0, startW=0, \
-        startN=0, startE=0, startD=0, \
+        startPn=0, startPe=0, startPd=0, \
         startRoll=0, startPitch=0, startYaw=0,\
         gravityCntrl=0, controlsCntrl=0, disturbancesCntrl=0, \
         controlSettings=Inputs.controlInputs()):
-        self.dT = dT
-        self.time = time
-        self.startU = startU
-        self.startV = startV
-        self.startW = startW
-        self.startN = startN
-        self.startE = startE
-        self.startD = startD
-        self.startRoll = startRoll
-        self.startPitch = startPitch
-        self.startYaw = startYaw
+        self.dT = dT # time step between each plotted point in seconds
+                     # this is different from the VGM time step
+                     # a dT of 1 would have 100 physics steps
+                     # between each plotted point if the VGM dT = .01
+        self.time = time # duration of the simulation in seconds
+        self.startU = startU # starting velocity in the body frame X
+        self.startV = startV # starting velocity in the body frame Y
+        self.startW = startW # starting velocity in the body frame Z
+        self.startPn = startPn # starting position along ECI X axis
+        self.startPe = startPe # starting position along ECI Y axis
+        self.startPd = startPd # starting position along ECI Z axis
+        self.startRoll = startRoll #starting roll from ECI to body
+        self.startPitch = startPitch #starting pitch from ECI to body
+        self.startYaw = startYaw #starting yaw from ECI to body
         
-        self.controlSettings = controlSettings
-        self.gravityCntrl = gravityCntrl
-        self.controlsCntrl = controlsCntrl
-        self.disturbancesCntrl = disturbancesCntrl
-        pass
+        self.gravityCntrl = gravityCntrl # set to 1 to include gravity forces in simulation
+                                         # set to 0 to ignore gravity forces
+        self.controlsCntrl = controlsCntrl # set to 1 to include control input forces
+                                           # set to 0 to ignore
+        self.disturbancesCntrl = disturbancesCntrl # set to 1 to include disturbances forces
+                                                   # set to 0 to ignore
+        self.controlSettings = controlSettings # static control inputs
+                                               # for example, you could see what happens to the
+                                               # sattelite if one of the thrusters remains permanently at
+                                               # half power
+        return
+
 
 def runTest(testArgs):
     # SIMULATION PROFILE
-    gravModel = VGM.VehicleGravitationalModel(initialNorth=testArgs.startN, initialEast=testArgs.startE, initialDown=testArgs.startD,
-                                              initialU=testArgs.initialU, initialV=testArgs.initialV, initialW=testArgs.initialW, 
+    gravModel = VGM.VehicleGravitationalModel(initialNorth=testArgs.startPn, initialEast=testArgs.startPe, initialDown=testArgs.startPd,
+                                              initialU=testArgs.startU, initialV=testArgs.startV, initialW=testArgs.startW, 
                                               gravity = testArgs.gravityCntrl, controls = testArgs.controlsCntrl, disturbances = testArgs.disturbancesCntrl)
 
 
@@ -123,6 +135,7 @@ def runTest(testArgs):
             data_Fd_z[i] = gravModel.disturbanceForces(gravModel.getVehicleState()).Fz
 
         if testArgs.controlsCntrl:
+            controlSettings = testArgs.controlSettings
             data_Ft_x[i] = gravModel.calculateThrustersForces(controlSettings.ThrusterX, controlSettings.ThrusterY,
                                                               controlSettings.ThrusterZ).Fx
             data_Ft_y[i] = gravModel.calculateThrustersForces(controlSettings.ThrusterX, controlSettings.ThrusterY,
@@ -238,6 +251,15 @@ def runTest(testArgs):
     plt.show()
     return
 
-#run a test for one day, where it starts at an orbit of 400km (iss orbit) above earth surface.
-#turn off controls and disturbances so only gravity is at play
-runTest(50, 86400, 7660, 0, 400e3 + VPC.radius_e, 0, Inputs.controlInputs(), 1, 0, 0)
+# A given test can be run by constructing a testArgs class and passing it into the runTest function
+# For a description of what each parameter does, look to the top of the file to view the testArgs class
+# parameter descriptions
+# An example test would be placing the satellite at an orbit of 400km, turning off the controls and disturbances
+# and observing as gravity causes it to plummet towards the earth
+
+args = testArgs()
+args.dT = 50
+args.time = 86400
+args.startPn = 00e3 + VPC.radius_e
+args.gravityCntrl = 1
+runTest(args)
