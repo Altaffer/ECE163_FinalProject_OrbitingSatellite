@@ -374,9 +374,13 @@ class PIDControl():
         return
 
 class ControlGains():
-    def __init__(self, Vtan_kp=0.0, Vtan_ki=0.0, Offset_kp=0.0, Offset_kd=0.0, Voffset_kp=0.0, Radial_kp=0.0,
-                   Radial_kd=0.0, Vradial_kp=0.0, Roll_kp=0.0, Roll_ki=0.0, Roll_kd=0.0, Pitch_kp=0.0, Pitch_ki=0.0,
-                 Pitch_kd=0.0, Yaw_kp=0.0, Yaw_ki=0.0, Yaw_kd=0.0, P_kp=0.0, Q_kp=0.0, R_kp=0.0):
+    def __init__(self, 
+                Vtan_kp=0.0, Vtan_ki=0.0, \
+                Offset_kp=0.0, Offset_kd=0.0, Voffset_kp=0.0, \
+                Radial_kp=0.0, Radial_kd=0.0, Vradial_kp=0.0, \
+                Roll_kp=6.0, Roll_ki=0.001, Roll_kd=25.0, \
+                Pitch_kp=6.0, Pitch_ki=0.001, Pitch_kd=25.0, \
+                Yaw_kp=6.0, Yaw_ki=0.001, Yaw_kd=25.0):
         """
         class to store control gains to be used in VCLC
         """
@@ -521,7 +525,7 @@ class VehicleClosedLoopControl():
     def UpdateControlCommands(self, vehicleState:States.vehicleState):
         R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
         thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = self.controlPosition(vehicleState,R_e2o, R_o2e)
-        reactorXcontrol, reactorYcontrol, reactorZcontrol    = self.controlOrientation(vehicleState,R_e2o, R_o2e)
+        reactorXcontrol,  reactorYcontrol,  reactorZcontrol  = self.controlOrientation(vehicleState,R_e2o, R_o2e)
 
         # formulating control object
         controls = Inputs.controlInputs()
