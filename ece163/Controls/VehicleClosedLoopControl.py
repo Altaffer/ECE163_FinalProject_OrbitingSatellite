@@ -450,9 +450,9 @@ class VehicleClosedLoopControl():
         self.VRadialFromRadial.setPDGains(kp=CG.Radial_kp, kd=CG.Radial_kd, lowLimit=-100, highLimit=100)
         self.thrustersFromVRadial.setPGains(kp=CG.Vradial_kp, lowLimit=-1, highLimit=1)
 
-        self.reactorXFromRoll.setPIDGains(dT=self.dT, kp=CG.Roll_kp,kd=CG.Roll_kd,ki=CG.Roll_ki, lowLimit=-3.14, highLimit=3.14)
-        self.reactorYFromPitch.setPIDGains(dT=self.dT, kp=CG.Pitch_kp,kd=CG.Pitch_kd,ki=CG.Pitch_ki, lowLimit=-3.14, highLimit=3.14)
-        self.reactorZFromYaw.setPIDGains(dT=self.dT, kp=CG.Yaw_kp,kd=CG.Yaw_ki,ki=CG.Yaw_ki, lowLimit=-3.14, highLimit=3.14)
+        self.reactorXFromRoll.setPIDGains(dT=self.dT, kp=CG.Roll_kp,kd=CG.Roll_kd,ki=CG.Roll_ki, lowLimit=-1, highLimit=1)
+        self.reactorYFromPitch.setPIDGains(dT=self.dT, kp=CG.Pitch_kp,kd=CG.Pitch_kd,ki=CG.Pitch_ki, lowLimit=-1, highLimit=1)
+        self.reactorZFromYaw.setPIDGains(dT=self.dT, kp=CG.Yaw_kp,kd=CG.Yaw_kd,ki=CG.Yaw_ki, lowLimit=-1, highLimit=1)
 
     def reset(self):
         self.thrustersFromVTangent.resetIntegrator()
@@ -505,10 +505,8 @@ class VehicleClosedLoopControl():
         R_b2o = mm.multiply(R_e2o, R_b2e)
         R_o2b = mm.transpose(R_b2o)
 
+        # body frame euler angles with respect to orbital
         yaw, pitch, roll, yawDot, pitchDot, rollDot = of.getOrbitalAngularVals(R_e2o, R_o2e, vehicleState)
-        p = vehicleState.p
-        q = vehicleState.q
-        r = vehicleState.r
 
         # Getting change in yaw, pitch, roll commands
         # For now, this means perfect alignment with the orbital frame

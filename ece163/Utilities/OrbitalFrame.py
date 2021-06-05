@@ -35,7 +35,7 @@ def orbitalFrameR(orbitVector, state:States.vehicleState):
 
     return R_ECI_to_Orbital, R_Orbital_to_ECI
 
-def getBodyOrbitalRots(R_e2o, R_o2e, vehicleState:States.vehicleState):
+def getBodyOrbitalRotationMatrices(R_e2o, R_o2e, vehicleState:States.vehicleState):
     # Getting Rotation Matrix from body 2 orbital frame
     R_b2e = mm.transpose(vehicleState.R) # body to inertial is equivalent to body to ECI
     R_b2o = mm.multiply(R_e2o, R_b2e)
@@ -62,27 +62,26 @@ def getOrbitalAxisVals(R_e2o, R_o2e, vehicleState:States.vehicleState):
 
 def getOrbitalAngularVals(R_e2o, R_o2e, vehicleState:States.vehicleState):
     # Getting Rotation Matrix from body 2 orbital frame
-    R_b2o, R_o2b = getBodyOrbitalRots(R_e2o, R_o2e, vehicleState)
-    # Getting euler angle misalignment from body frame to orbital frame
-    # yaw pitch and roll are poor terms because it's not how much the body is
-    # rotated from the orbital frame, but how much the body needs to rotate to
-    # align with the orbital frame
-    yaw, pitch, roll = Rotations.dcm2Euler(R_b2o)
+    R_b2e = mm.transpose(vehicleState.R) # body to inertial is equivalent to body to ECI
+    R_b2o = mm.multiply(R_e2o, R_b2e)
+    R_o2b = mm.transpose(R_b2o)
+
+    # Getting euler angle misalignment between
+    # orbital frame and body frame
+    yaw, pitch, roll = Rotations.dcm2Euler(R_o2b)
 
     # body rotation rates
     p = vehicleState.p
     q = vehicleState.q
     r = vehicleState.r
-
-    # because we are dealing with the misalignment of another frame from the body frame
-    # suddenly we don't need to deal with the Beard 3.2 nonsense where the body rates
-    # affect the orientation differently depending on the current orientation
-
-    # we can think of the yaw as "the amount needed to rotate for alignment"
-    # so when the body rotates by a certain amount, the amount needed to rotate
-    # to return to alignment is in the opposite direction, hence the negative sign
-    yawDot = -p
-    pitchDot = -q
-    rollDot = -r
+    
+    # Getting Yaw, Pitch, Roll dot in orbital frame
+    pqr = mm.transpose([[p, q, r]])
+    # beard 3.3
+    weird_matrix = [[1, math.sin(roll)*math.tan(pitch), math.cos(roll)*math.tan(pitch)],
+                    [0, math.cos(roll), -math.sin(roll)],
+                    [0, math.sin(roll)/math.cos(pitch), math.cos(roll)/math.cos(pitch)]]
+    rollpitchyaw_dot = mm.multiply(weird_matrix, pqr)
+    rollDot, pitchDot, yawDot = mm.transpose(rollpitchyaw_dot)[0]
 
     return yaw, pitch, roll, yawDot, pitchDot, rollDot
