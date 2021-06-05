@@ -374,9 +374,9 @@ class PIDControl():
         return
 
 class ControlGains():
-    def __init__(self, Vtan_kp=0.0, Vtan_ki=0.0, Offset_kp=0.0, Offset_kd=0.0, Voffset_kp=0.0, Radial_kp=0.0,
-                   Radial_kd=0.0, Vradial_kp=0.0, Roll_kp=0.0, Roll_ki=0.0, Roll_kd=0.0, Pitch_kp=0.0, Pitch_ki=0.0,
-                 Pitch_kd=0.0, Yaw_kp=0.0, Yaw_ki=0.0, Yaw_kd=0.0, P_kp=0.0, Q_kp=0.0, R_kp=0.0):
+    def __init__(self, Vtan_kp=0.0000001, Vtan_ki=0.0000000001, Offset_kp=1, Offset_kd=0.0, Voffset_kp=0.000001, Radial_kp=1,
+                   Radial_kd=0, Vradial_kp=0.000001, Roll_kp=6, Roll_ki=25, Roll_kd=0.001, Pitch_kp=6, Pitch_ki=25,
+                 Pitch_kd=0.001, Yaw_kp=6, Yaw_ki=25, Yaw_kd=0.001, P_kp=0.0, Q_kp=0.0, R_kp=0.0):
         """
         class to store control gains to be used in VCLC
         """

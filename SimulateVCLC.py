@@ -16,8 +16,8 @@ from matplotlib import pyplot  as plt
 class testArgs():
     def __init__(self, dT=50, time=86400, startOrbitalSpeed=7000, orbitVector=[[0],[0],[-(400000+VPC.radius_e)]], \
                  orbitStartPosNED=[[0], [400000+VPC.radius_e], [0]],  controlGains = VCLC.ControlGains(), \
-                 gravityCntrl=0, controlsCntrl=1, disturbancesCntrl=0, returnECIdata=1, returnTORdata=1,
-                 returnCntrlData=1):
+                 gravityCntrl=0, controlsCntrl=0, disturbancesCntrl=0, returnECIdata=0, returnTORdata=0,
+                 returnCntrlData=0, returnAnimationNE=0, returnAnimationED=0):
         self.dT = dT  # time step between each plotted point in seconds
         # this is different from the VGM time step
         # a dT of 1 would have 100 physics steps
@@ -39,12 +39,16 @@ class testArgs():
         # set to 0 to ignore
         self.returnCntrlData = returnCntrlData  # set to 1 to return plots of the controls
         # set to zero to ignore
+        self.returnAnimationNE = returnAnimationNE  # set to 1 to return an animation of NE plane
+        # set to zero to ignore
+        self.returnAnimationED = returnAnimationED  # set to 1 to return an animation of ED plane
+        # set to zero to ignore
 
         #to find the initial speed of the craft in uvw to initialize the VGM, rotate to orbital frame speed to body
         state = States.vehicleState(pn=self.orbitStartPosNED[0][0], pe=self.orbitStartPosNED[1][0],
                                     pd=self.orbitStartPosNED[2][0])  # create a temporary state with NED to get rots
         Reci2orbital, Rorbital2eci = OF.orbitalFrameR(self.orbitVector, state)  # get rots for eci and orbit
-        Rbody2orbital, Rorbital2body = OF.getBodyOrbitalRots(Reci2orbital, Rorbital2eci, state)  # get body rotations
+        Rbody2orbital, Rorbital2body = OF.getBodyOrbitalRotationMatrices(Reci2orbital, Rorbital2eci, state)  # get body rotations
         self.speedUVW = mm.multiply(Rorbital2body, [[startOrbitalSpeed], [0], [0]])  # get the uvw speed from orbit
 
         self.controlGains = controlGains
@@ -76,10 +80,10 @@ def runTest(args: testArgs):
     t_data = [i * dT for i in range(n_steps)]
 
     # state data
+    data_pn = [0 for i in range(n_steps)]
+    data_pe = [0 for i in range(n_steps)]
+    data_pd = [0 for i in range(n_steps)]
     if args.returnECIdata:
-        data_pn = [0 for i in range(n_steps)]
-        data_pe = [0 for i in range(n_steps)]
-        data_pd = [0 for i in range(n_steps)]
         data_u = [0 for i in range(n_steps)]
         data_v = [0 for i in range(n_steps)]
         data_w = [0 for i in range(n_steps)]
@@ -124,10 +128,12 @@ def runTest(args: testArgs):
         # ex: data[i] = gravModel.getVehicleState().pd   for the height
 
         # get state data
+
+        data_pn[i] = gravModel.getVehicleState().pn
+        data_pe[i] = gravModel.getVehicleState().pe
+        data_pd[i] = gravModel.getVehicleState().pd
+
         if args.returnECIdata:
-            data_pn[i] = gravModel.getVehicleState().pn
-            data_pe[i] = gravModel.getVehicleState().pe
-            data_pd[i] = gravModel.getVehicleState().pd
 
             data_u[i] = gravModel.getVehicleState().u
             data_v[i] = gravModel.getVehicleState().v
@@ -178,6 +184,42 @@ def runTest(args: testArgs):
         gravModel.Update(controls)
 
     # PLOT DATA
+    if args.returnAnimationNE:
+        fig, ax = plt.subplots()
+        north = []
+        east = []
+        days = 0
+        hours = 0
+        mins = 0
+        simsecs = 0
+        simms = 0
+        for i in range(n_steps):
+            north.append(data_pn[i])
+            east.append(data_pe[i])
+            ax.plot(north, east, 'b', linewidth=5)
+
+            #calculate days elapsed
+            if hours == 24:
+                days += 1
+                hours = 0
+            # calculate hours elapsed
+            if mins == 60:
+                hours += 1
+                mins = 0
+            # calculate minutes elapsed
+            if (args.dT * i) % 60 == 0:
+                mins += 1
+            # calculate minutes elapsed
+            if (0.001 * i) % 10 == 0:
+                simsecs += 1
+                simms = 0
+            simms += 1
+
+            ax.set_title("D: {days} H: {hours} M: {minutes} , SimTime = {simtime}.{simms} s"\
+                    .format(days=days, hours=hours, minutes=mins, simtime=simsecs, simms=simms))
+
+            plt.pause(0.001)
+
     if args.returnECIdata and args.returnTORdata:
         # position
         fig, points = plt.subplots(3, 2, sharex='all')
@@ -372,4 +414,10 @@ def runTest(args: testArgs):
 # and observing as gravity causes it to plummet towards the earth
 
 args = testArgs()
+args.returnAnimationNE = 1
+args.gravityCntrl = 1
+args.controlsCntrl = 1
+args.dT = 100*50
+args.time = 100*8640
+args.startOrbitalSpeed = 0
 runTest(args)
