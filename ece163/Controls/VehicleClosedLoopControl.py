@@ -409,6 +409,10 @@ class ControlGains():
         self.Yaw_ki = Yaw_ki
         self.Yaw_kd = Yaw_kd
 
+        self.P_kp = P_kp
+        self.Q_kp = Q_kp
+        self.R_kp = R_kp
+
         return
 
 
