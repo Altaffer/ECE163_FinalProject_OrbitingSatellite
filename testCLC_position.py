@@ -17,13 +17,28 @@ gravModel = VGM.VehicleGravitationalModel(gravity=False, disturbances=False,cont
 
 controlModel = VCLC.VehicleClosedLoopControl()
 cg = VCLC.ControlGains()
+cg.Vtan_ki = .0000000001
+cg.Vtan_kp = .0000001
+
+cg.Offset_kd = 0
+cg.Offset_kp = 1
+cg.Voffset_kp = .000001
+
+cg.Radial_kd = 0
+cg.Radial_kp = 1
+cg.Vradial_kp = .000001
+
 controlModel.setControlGains(cg)
 
 dT = .01
 # T_tot = 800000 # 200 hours
-T_tot = 80 # 200 hours
+T_tot = 200 # 200 hours
 n_steps = int(T_tot / dT)
 t_data = [i * dT for i in range(n_steps)]
+
+thrusterXcom = [0 for i in range(n_steps)]
+thrusterYcom = [0 for i in range(n_steps)]
+thrusterZcom = [0 for i in range(n_steps)]
 
 data_pt_tor = [0 for i in range(n_steps)]
 data_po_tor = [0 for i in range(n_steps)]
@@ -51,10 +66,18 @@ for i in range(n_steps):
 
     orbPos, orbVel = of.getOrbitalAxisVals(R_e2o, R_o2e, vs)
 
-    data_pr_tor_com[i] = math.hypot(controlModel.OrbitVector[0][0], controlModel.OrbitVector[1][0], controlModel.OrbitVector[2][0])
+    rc = math.hypot(controlModel.OrbitVector[0][0], controlModel.OrbitVector[1][0], controlModel.OrbitVector[2][0])
+    data_pr_tor_com[i] = rc
+    a = VPC.G*VPC.mass_e/(rc*rc) # TODO set to actual acceleration with respect to radius
+    data_velt_tor_com[i] = math.sqrt(a*rc)
 
     data_pt_tor[i], data_po_tor[i], data_pr_tor[i] = mm.transpose(orbPos)[0]
     data_velt_tor[i], data_velo_tor[i], data_velr_tor[i] = mm.transpose(orbVel)[0]
+
+    thrusterXcom[i] = thrusterXcontrol
+    thrusterYcom[i] = thrusterYcontrol
+    thrusterZcom[i] = thrusterZcontrol
+    
 
 fig, positionTOR = plt.subplots(3, 1, sharex='all')
 positionTOR[0].plot(t_data, data_pt_tor)
@@ -79,6 +102,15 @@ velTOR[1].set_title("orbital vel po")
 velTOR[2].plot(t_data, data_velr_tor)
 velTOR[2].set_title("orbital vel pr")
 velTOR[2].set(xlabel="time (s)")
+
+fig, thrustCom = plt.subplots(3, 1, sharex='all')
+thrustCom[0].plot(t_data, thrusterXcom)
+thrustCom[0].set_title("thruster x com")
+thrustCom[1].plot(t_data, thrusterYcom)
+thrustCom[1].set_title("thruster y com")
+thrustCom[2].plot(t_data, thrusterZcom)
+thrustCom[2].set_title("thruster z com")
+thrustCom[2].set(xlabel="time (s)")
 
 # fig, circle = plt.subplots()
 # circle.plot(data_pn, data_pe)
