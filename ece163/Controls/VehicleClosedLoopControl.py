@@ -409,12 +409,6 @@ class ControlGains():
         self.Yaw_ki = Yaw_ki
         self.Yaw_kd = Yaw_kd
 
-        self.P_kp = P_kp
-        self.Q_kp = Q_kp
-        self.R_kp = R_kp
-
-        return
-
 
 class VehicleClosedLoopControl():
     def __init__(self,  dT=0.01, OrbitVector = [[0],[0],[-(400000+VPC.radius_e)]]):
