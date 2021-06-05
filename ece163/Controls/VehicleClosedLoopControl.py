@@ -405,10 +405,6 @@ class ControlGains():
         self.Yaw_ki = Yaw_ki
         self.Yaw_kd = Yaw_kd
 
-        self.P_kp = P_kp
-        self.Q_kp = Q_kp
-        self.R_kp = R_kp
-
         return
 
 
@@ -440,14 +436,9 @@ class VehicleClosedLoopControl():
         self.VRadialFromRadial = PDControl()
         self.thrustersFromVRadial = PControl()
 
-        self.rollDotFromRoll = PIDControl()
-        self.pitchDotFromPitch = PIDControl()
-        self.yawDotFromYaw = PIDControl()
-
-        self.reactorXfromP = PControl()
-        self.reactorYfromQ = PControl()
-        self.reactorZfromR = PControl()
-
+        self.reactorXFromRoll = PIDControl()
+        self.reactorYFromPitch = PIDControl()
+        self.reactorZFromYaw = PIDControl()
         return
 
     def setControlGains(self, CG:ControlGains):
@@ -459,23 +450,19 @@ class VehicleClosedLoopControl():
         self.VRadialFromRadial.setPDGains(kp=CG.Radial_kp, kd=CG.Radial_kd, lowLimit=-100, highLimit=100)
         self.thrustersFromVRadial.setPGains(kp=CG.Vradial_kp, lowLimit=-1, highLimit=1)
 
-        self.rollDotFromRoll.setPIDGains(dT=self.dT, kp=CG.Roll_kp,kd=CG.Roll_kd,ki=CG.Roll_ki, lowLimit=-3.14, highLimit=3.14)
-        self.pitchDotFromPitch.setPIDGains(dT=self.dT, kp=CG.Pitch_kp,kd=CG.Pitch_kd,ki=CG.Pitch_ki, lowLimit=-3.14, highLimit=3.14)
-        self.yawDotFromYaw.setPIDGains(dT=self.dT, kp=CG.Yaw_kp,kd=CG.Yaw_ki,ki=CG.Yaw_ki, lowLimit=-3.14, highLimit=3.14)
-
-        self.reactorXfromP.setPGains(kp=CG.P_kp, lowLimit=-1, highLimit=1)
-        self.reactorYfromQ.setPGains(kp=CG.Q_kp, lowLimit=-1, highLimit=1)
-        self.reactorZfromR.setPGains(kp=CG.R_kp, lowLimit=-1, highLimit=1)
+        self.reactorXFromRoll.setPIDGains(dT=self.dT, kp=CG.Roll_kp,kd=CG.Roll_kd,ki=CG.Roll_ki, lowLimit=-3.14, highLimit=3.14)
+        self.reactorYFromPitch.setPIDGains(dT=self.dT, kp=CG.Pitch_kp,kd=CG.Pitch_kd,ki=CG.Pitch_ki, lowLimit=-3.14, highLimit=3.14)
+        self.reactorZFromYaw.setPIDGains(dT=self.dT, kp=CG.Yaw_kp,kd=CG.Yaw_ki,ki=CG.Yaw_ki, lowLimit=-3.14, highLimit=3.14)
 
     def reset(self):
         self.thrustersFromVTangent.resetIntegrator()
-        self.rollDotFromRoll.resetIntegrator()
-        self.pitchDotFromPitch.resetIntegrator()
-        self.yawDotFromYaw.resetIntegrator()
+        self.reactorXFromRoll.resetIntegrator()
+        self.reactorYFromPitch.resetIntegrator()
+        self.reactorZFromYaw.resetIntegrator()
 
-    def controlPosition(self, vehicleState:States.vehicleState):
+    def controlPosition(self, vehicleState:States.vehicleState, R_e2o, R_o2e):
         # calculating orbital frame based on orbit vector and sat position
-        R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
+        # R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
         # Getting Rotation Matrix from body 2 orbital frame
         R_b2e = mm.transpose(vehicleState.R) # body to inertial is equivalent to body to ECI
         R_b2o = mm.multiply(R_e2o, R_b2e)
@@ -510,9 +497,9 @@ class VehicleClosedLoopControl():
 
         return thrusterXcontrol, thrusterYcontrol, thrusterZcontrol
 
-    def controlOrientation(self, vehicleState:States.vehicleState):
+    def controlOrientation(self, vehicleState:States.vehicleState, R_e2o, R_o2e):
         # calculating orbital frame based on orbit vector and sat position
-        R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
+        # R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
         # Getting Rotation Matrix from body 2 orbital frame
         R_b2e = mm.transpose(vehicleState.R) # body to inertial is equivalent to body to ECI
         R_b2o = mm.multiply(R_e2o, R_b2e)
@@ -526,26 +513,17 @@ class VehicleClosedLoopControl():
         # Getting change in yaw, pitch, roll commands
         # For now, this means perfect alignment with the orbital frame
         # if we want the satellite facing a different direction, we can adjust the zeros to something else
-        yawDotCommand = self.yawDotFromYaw.Update(0, yaw, yawDot)
-        pitchDotCommand = self.pitchDotFromPitch.Update(0, pitch, pitchDot)
-        rollDotCommand = self.rollDotFromRoll.Update(0, roll, rollDot)
-
-        # Getting commanded body angular velocity commands
-        eulerDotCommand = [[rollDotCommand], [pitchDotCommand], [yawDotCommand]]
-        pqr_command = mm.scalarMultiply(-1, eulerDotCommand)
-        pCommand, qCommand, rCommand = mm.transpose(pqr_command)[0]
-
-        # Getting Reaction wheel commands
-        reactorXcontrol = self.reactorXfromP.Update(pCommand, p)
-        reactorYcontrol = self.reactorYfromQ.Update(qCommand, q)
-        reactorZcontrol = self.reactorZfromR.Update(rCommand, r)
+        reactorXcontrol = self.reactorXFromRoll.Update(0, roll, rollDot)
+        reactorYcontrol = self.reactorYFromPitch.Update(0, pitch, pitchDot)
+        reactorZcontrol = self.reactorZFromYaw.Update(0, yaw, yawDot)
 
         return reactorXcontrol, reactorYcontrol, reactorZcontrol
 
 
     def UpdateControlCommands(self, vehicleState:States.vehicleState):
-        thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = self.controlPosition(vehicleState)
-        reactorXcontrol, reactorYcontrol, reactorZcontrol    = self.controlOrientation(vehicleState)
+        R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
+        thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = self.controlPosition(vehicleState,R_e2o, R_o2e)
+        reactorXcontrol, reactorYcontrol, reactorZcontrol    = self.controlOrientation(vehicleState,R_e2o, R_o2e)
 
         # formulating control object
         controls = Inputs.controlInputs()

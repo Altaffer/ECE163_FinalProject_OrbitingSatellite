@@ -250,3 +250,25 @@ eulerVec_exp = [[math.radians(0)],[math.radians(0)],[math.radians(0)]]
 res = compareVectors(eulerVec, eulerVec_exp)
 
 assert(res)
+
+# # Testing getOrbitalAngularVals with orbit around equator
+# orbit = [[0],[0],[-1]] # defines a counter clockwise orbit around the equator
+# position_inertial = [[100],[0],[0]] # position 100 units from center of earth
+# vs = States.vehicleState(pn=position_inertial[0][0], pe=position_inertial[1][0],pd=position_inertial[2][0],
+#                          roll=math.radians(20), pitch=math.radians(30),yaw=math.radians(0))
+
+# R_EtoO = Rotations.euler2DCM(math.radians(10), math.radians(30), math.radians(20))
+# R_OtoE = mm.transpose(R_EtoO)
+
+# yaw, pitch, roll, yawdot, pitchdot, rolldot = of.getOrbitalAngularVals(R_EtoO, R_OtoE, vs)
+
+# eulerVec = [[math.degrees(yaw)],[math.degrees(pitch)],[math.degrees(roll)]]
+# eulerDotVec = [[yawdot],[pitchdot],[rolldot]]
+
+
+# eulerVec_exp = [[10],[0],[0]]
+# res = compareVectors(eulerVec, eulerVec_exp)
+# print(eulerVec)
+# print(eulerVec_exp)
+
+# assert(res)

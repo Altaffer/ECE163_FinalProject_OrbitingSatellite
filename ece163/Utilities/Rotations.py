@@ -33,35 +33,23 @@ def c(var):
     value = math.cos(var) #the value to be returned
     return value
 
-def dcm2Euler(DCM):
+def dcm2Euler(dcm):
     """
-    Extracts the Euler angles from the rotation matrix, in the form of yaw, pitch, roll corresponding to the [3,2,1] euler
-    set. Note that euler angles have a singularity at pitch = +/- pi/2 in that roll and yaw become indistinguishable.
-    Parameters:
-    DCM – Rotation matrix [3 x 3]
-
-    Returns:
-    yaw, pitch, and roll [rad] in a 3 item array
+    reads a 3x3 rotation matrix and calculates the euler angles
+    returns a list [yaw, pitch, roll]
     """
-    euler_yaw_pitch_roll = [0,0,0] #create an array to hold yaw, pitch, roll
+    # yaw calculations
+    yaw = math.atan2(dcm[0][1], dcm[0][0])
 
-    #calculate yaw, checking for out of domain
-    euler_yaw_pitch_roll[0] = math.atan2(DCM[0][1], DCM[0][0])
+    # pitch calculations
+    # the min, max ensures that the value remains within [-1,1]
+    boundedCell = min(1,max(-1,dcm[0][2]));
+    pitch = -math.asin(boundedCell)
 
-    # check for case where math gives a value slightly greater that 1 or slightly less than -1
-    if DCM[0][2] - 1 > 0:
-        DCM[0][2] = 1
-    elif DCM[0][2] + 1 < 0:
-        DCM[0][2] = -1
+    # roll calculations
+    roll = math.atan2(dcm[1][2], dcm[2][2])
 
-    # calculate pitch
-    euler_yaw_pitch_roll[1] = -(math.asin(DCM[0][2]))
-
-    #calculate roll
-    euler_yaw_pitch_roll[2] = math.atan2(DCM[1][2], DCM[2][2])
-
-    #return the euler array
-    return euler_yaw_pitch_roll
+    return yaw, pitch, roll
 
 def euler2DCM(yaw, pitch, roll):
     """Create the direction cosine matrix, R, from the euler angles (assumed to be in radians). Angles are yaw,pitch,roll
