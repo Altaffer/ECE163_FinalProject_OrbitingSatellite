@@ -56,10 +56,6 @@ data_xMisalign_dot = [0 for i in range(n_steps)]
 data_yMisalign_dot = [0 for i in range(n_steps)]
 data_zMisalign_dot = [0 for i in range(n_steps)]
 
-data_xMisalign_dot_controller_observed = [0 for i in range(n_steps)]
-data_yMisalign_dot_controller_observed = [0 for i in range(n_steps)]
-data_zMisalign_dot_controller_observed = [0 for i in range(n_steps)]
-
 data_xMisalign_exp = [0 for i in range(n_steps)]
 data_yMisalign_exp = [0 for i in range(n_steps)]
 data_zMisalign_exp = [0 for i in range(n_steps)]
@@ -103,10 +99,6 @@ for i in range(n_steps):
     data_reactorYcontrol[i] = reactorYcontrol
     data_reactorZcontrol[i] = reactorZcontrol
 
-    data_xMisalign_dot[i] = math.degrees(controlModel.reactorXFromRoll.dot_prev)
-    data_yMisalign_dot[i] = math.degrees(controlModel.reactorYFromPitch.dot_prev)
-    data_zMisalign_dot[i] = math.degrees(controlModel.reactorZFromYaw.dot_prev)
-
 
 fig, angularMisalign = plt.subplots(3, 1, sharex='all')
 angularMisalign[0].plot(t_data, data_zMisalign,label="actual")
@@ -137,24 +129,6 @@ angularMisalign_dot[2].plot(t_data, data_xMisalign_dot,label="actual")
 angularMisalign_dot[2].set_title("x misalign_dot")
 angularMisalign_dot[2].legend()
 angularMisalign_dot[2].set(xlabel="time (s)")
-
-
-
-fig, angularMisalign_dot_controller_obsrved = plt.subplots(3, 1, sharex='all')
-angularMisalign_dot_controller_obsrved[0].plot(t_data, data_zMisalign_dot_controller_observed,label="actual")
-# angularMisalign[0].plot(t_data, data_zMisalign_exp,label="expected")
-angularMisalign_dot_controller_obsrved[0].legend()
-angularMisalign_dot_controller_obsrved[0].set_title("z misalign_dot_controller_observed")
-angularMisalign_dot_controller_obsrved[1].plot(t_data, data_yMisalign_dot_controller_observed,label="actual")
-# angularMisalign[1].plot(t_data, data_yMisalign_exp,label="expected")
-angularMisalign_dot_controller_obsrved[1].legend()
-angularMisalign_dot_controller_obsrved[1].set_title("y misalign_dot_controller_observed")
-angularMisalign_dot_controller_obsrved[2].plot(t_data, data_xMisalign_dot_controller_observed,label="actual")
-# angularMisalign[2].plot(t_data, data_xMisalign_exp,label="expected")
-angularMisalign_dot_controller_obsrved[2].set_title("x misalign_dot_controller_observed")
-angularMisalign_dot_controller_obsrved[2].legend()
-angularMisalign_dot_controller_obsrved[2].set(xlabel="time (s)")
-
 
 fig, angularMisalign = plt.subplots(3, 1, sharex='all')
 angularMisalign[0].plot(t_data, data_reactorZcontrol)

@@ -34,7 +34,7 @@ lengthZ = 0.1062  # [m]
 Jxx = 0.0691  # [kg m^2]
 Jyy = 0.1465  # [kg m^2]
 Jzz = 0.1929  # [kg m^2]
-Jxz = 0.7144  # [kg m^2]
+Jxz = 0.07144  # [kg m^2]
 
 Jbody = [[Jxx, 0., -Jxz], [0., Jyy, 0.], [-Jxz, 0., Jzz]]
 Jdet = (Jxx * Jzz - Jxz ** 2)
