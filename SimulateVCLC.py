@@ -44,7 +44,7 @@ class testArgs():
         state = States.vehicleState(pn=self.orbitStartPosNED[0][0], pe=self.orbitStartPosNED[1][0],
                                     pd=self.orbitStartPosNED[2][0])  # create a temporary state with NED to get rots
         Reci2orbital, Rorbital2eci = OF.orbitalFrameR(self.orbitVector, state)  # get rots for eci and orbit
-        Rbody2orbital, Rorbital2body = OF.getBodyOrbitalRots(Reci2orbital, Rorbital2eci, state)  # get body rotations
+        Rbody2orbital, Rorbital2body = OF.getBodyOrbitalRotationMatrices(Reci2orbital, Rorbital2eci, state)  # get body rotations
         self.speedUVW = mm.multiply(Rorbital2body, [[startOrbitalSpeed], [0], [0]])  # get the uvw speed from orbit
 
         self.controlGains = controlGains
