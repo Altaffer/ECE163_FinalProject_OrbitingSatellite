@@ -69,3 +69,12 @@ def satSurfaceArea(state):
     surf_area = math.fabs(A*dot_product)
 
     return surf_area
+
+def airdrag(state):
+    """Calculates the airdrag of the satellite
+    """
+    # area of the satellite
+    A = VPC.lengthY * VPC.lengthX
+
+    # Drag force
+    F_drag = 0.5 * rho * state.Va *
