@@ -52,22 +52,22 @@ def satSurfaceArea(state):
     """
     #area of the satellite
     A = VPC.lengthY * VPC.lengthX
-
     #orthoganal unit vector to solar array in body frame
     ortho_vector = [0,0,-1]
-
     #nomalized sun to sat array in body frame
     temp = distanceFromSun(state)
     sun_vector = [temp[0][0], temp[1][0], temp[2][0]]
-
     #solving for the unit vectors
     unit_ortho = ortho_vector / np.linalg.norm(ortho_vector)
     unit_sun = sun_vector / np.linalg.norm(sun_vector)
-
     # dot product between both vectors to find angle
     dot_product = np.dot(unit_ortho, unit_sun)
-
     # total surface area
     surf_area = math.fabs(A*dot_product)
-
     return surf_area
+
+def airDrag(state):
+    """air density as a function of height, drag as a function of height
+    """
+    #defining the area of drag or simply the largest surface area
+    A = VPC.lengthY * VPC.lengthX
