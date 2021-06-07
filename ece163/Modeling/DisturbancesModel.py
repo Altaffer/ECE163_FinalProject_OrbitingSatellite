@@ -78,5 +78,11 @@ def airdrag(state):
     # area of the satellite
     A = VPC.lengthY * VPC.lengthX
 
-    # Drag force
-    F_drag = 0.5 * rho * state.Va *
+    # density
+    rho = VPC.rho_0 * math.exp( ( ( VPC.G * VPC.mass_e * VPC.mass_am ) / ( VPC.k_b *  VPC.T ) ) *
+                                (( 1 / state.pd ) - ( 1 / VPC.radius_e )))
+
+    # drag force
+    F_drag = 0.5 * rho * ( state.Va ** 2 ) * VPC.cd * A
+
+    return F_drag
