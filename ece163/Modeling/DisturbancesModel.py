@@ -14,7 +14,10 @@ def distanceFromMoon(state):
     """Calculates the vector between the Moon and the satellite by inputting the NED positions of the satellite
     throughout orbit using Earth distances as reference points. Returns normalized vector.
     """
-    MoonState = MGM.MoonGravitationalModel.MoonDynamicsModel.state
+    MoonState = MGM.MoonGravitationalModel(initialNorth=VPC.MoonInitialNorth, initialEast=VPC.MoonInitialEast,
+                                           initialDown=VPC.MoonInitialDown, initialU=VPC.MoonInitialU,
+                                           initialV=VPC.MoonInitialV,
+                                           initialW=VPC.MoonInitialW, gravity=True).MoonDynamicsModel.state
     #finding the difference between earthMoon and earthSatellite(state variables) to find distance
     moonSat = mm.subtract([[MoonState.pn], [MoonState.pe], [MoonState.pd]], [[state.pn], [state.pe], [state.pd]])
     #calculating the norm
