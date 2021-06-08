@@ -61,7 +61,7 @@ class forcesMoments:
 
 
 class controlInputs:
-	def __init__(self, ThrusterX=0.5, ThrusterY=0.0, ThrusterZ=0.0, ReactionX=0.0, ReactionY=0.0, ReactionZ=0.0):
+	def __init__(self, ThrusterX=0.0, ThrusterY=0.0, ThrusterZ=0.0, ReactionX=0.0, ReactionY=0.0, ReactionZ=0.0):
 		"""
 		A container for the control inputs to the thrusters and reaction wheel setup. Currently for a 3-axis thruster
 		system and 3-axis reaction wheel system.

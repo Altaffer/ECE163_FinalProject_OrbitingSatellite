@@ -52,8 +52,9 @@ Jdet = (Jxx * Jzz - Jxz ** 2)
 JinvBody = MatrixMath.scalarMultiply(1. / Jdet, [[Jzz, 0., Jxz], [0., Jdet / Jyy, 0.], [Jxz, 0., Jxx]])
 
 # THRUSTER profile - epulsion nano thruster
-Thruster_min = 10e-6  # minimum thruster value [N]
-Thruster_max = 330e-6  # maximum thruster value [N]
+Thruster_scaling_factor = 5e4  # gives ability to play with the sthruster range to fit our sat model
+Thruster_min = 10e-6 * Thruster_scaling_factor # minimum thruster value [N]
+Thruster_max = 330e-6 * Thruster_scaling_factor  # maximum thruster value [N]
 C_thruster = Thruster_max - Thruster_min  # Constant relaying a thruster command to newtons generated
 
 # ** because thruster control does not always operate on a range from 0 -> thruster_max, the following equation can be
