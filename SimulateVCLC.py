@@ -8,7 +8,7 @@ from ece163.Constants import VehiclePhysicalConstants as VPC
 from ece163.Modeling import VehicleGravitationalModel as VGM
 from ece163.Controls import VehicleClosedLoopControl as VCLC
 from ece163.Utilities import OrbitalFrame as OF
-from matplotlib import pyplot  as plt
+from matplotlib import pyplot as plt
 
 
 # TO RUN TESTS/SIMULATIONS, SCROLL TO THE BOTTOM TO INPUT A TEST
@@ -49,7 +49,7 @@ class testArgs():
                                     pd=self.orbitStartPosNED[2][0])  # create a temporary state with NED to get rots
         Reci2orbital, Rorbital2eci = OF.orbitalFrameR(self.orbitVector, state)  # get rots for eci and orbit
         Rbody2orbital, Rorbital2body = OF.getBodyOrbitalRotationMatrices(Reci2orbital, Rorbital2eci, state)  # get body rotations
-        self.speedUVW = mm.multiply(Rorbital2body, [[startOrbitalSpeed], [0], [0]])  # get the uvw speed from orbit
+        self.speedUVW = mm.multiply(Rorbital2body, [[self.startOrbitalSpeed], [0], [0]])  # get the uvw speed from orbit
 
         self.controlGains = controlGains
 
@@ -66,6 +66,8 @@ def runTest(args: testArgs):
                                               initialW=args.speedUVW[2][0],
                                               gravity=args.gravityCntrl, controls=args.controlsCntrl,
                                               disturbances=args.disturbancesCntrl)
+
+    gravModel.getVehicleDynamicsModel().dT = args.dT
 
     clControl = VCLC.VehicleClosedLoopControl(dT=args.dT, OrbitVector=args.orbitVector)
     clControl.setControlGains(args.controlGains)
@@ -185,40 +187,90 @@ def runTest(args: testArgs):
 
     # PLOT DATA
     if args.returnAnimationNE:
-        fig, ax = plt.subplots()
-        north = []
-        east = []
+        # animation for NE plane
+        x_data = []
+        y_data = []
+
+        earth = plt.Circle((0, 0), VPC.radius_e / 1e6, color='green', linewidth=1)
+
         days = 0
         hours = 0
         mins = 0
+        secs = 0
         simsecs = 0
-        simms = 0
-        for i in range(n_steps):
-            north.append(data_pn[i])
-            east.append(data_pe[i])
-            ax.plot(north, east, 'b', linewidth=5)
+        simtime = 0
 
-            #calculate days elapsed
+        for i in range(n_steps):
+            # collect data
+            x_data.append(data_pe[i] / 1e6)
+            y_data.append(data_pn[i] / 1e6)
+
+            # calculate days elapsed
             if hours == 24:
                 days += 1
                 hours = 0
             # calculate hours elapsed
-            if mins == 60:
+            if secs >= 3600:
                 hours += 1
-                mins = 0
-            # calculate minutes elapsed
-            if (args.dT * i) % 60 == 0:
-                mins += 1
-            # calculate minutes elapsed
-            if (0.001 * i) % 10 == 0:
-                simsecs += 1
-                simms = 0
-            simms += 1
+                secs -= 3600
+            secs += args.dT
+            simtime += 1
 
-            ax.set_title("D: {days} H: {hours} M: {minutes} , SimTime = {simtime}.{simms} s"\
-                    .format(days=days, hours=hours, minutes=mins, simtime=simsecs, simms=simms))
+            if i % 8 == 0:
+                # plot earth, set graph limits, set title, plot data
+                plt.gca().add_patch(earth)
+                plt.xlim(-20, 20)
+                plt.ylim(-20, 20)
+                plt.plot(x_data, y_data, color='blue', linewidth=1)
+                plt.title("Days elapsed: {days}   Hours elapsed: {hours} ,    SimTime = {simtime} steps" \
+                          .format(days=days, hours=hours, simtime=simtime))
+                plt.xlabel("Position east (million meters)")
+                plt.ylabel("Position north (million meters)")
+                plt.pause(0.001)
+        plt.show()
 
-            plt.pause(0.001)
+    if args.returnAnimationED:
+        # animation for NE plane
+        x_data = []
+        y_data = []
+
+        earth = plt.Circle((0, 0), VPC.radius_e / 1e6, color='green', linewidth=1)
+
+        days = 0
+        hours = 0
+        mins = 0
+        secs = 0
+        simsecs = 0
+        simtime = 0
+
+        for i in range(n_steps):
+            # collect data
+            x_data.append(data_pe[i] / 1e6)
+            y_data.append(data_pd[i] / 1e6)
+
+            # calculate days elapsed
+            if hours == 24:
+                days += 1
+                hours = 0
+            # calculate hours elapsed
+            if secs >= 3600:
+                hours += 1
+                secs -= 3600
+            secs += args.dT
+            simtime += 1
+
+            if i % 8 == 0:
+                # plot earth, set graph limits, set title, plot data
+                plt.gca().add_patch(earth)
+                plt.xlim(-20, 20)
+                plt.ylim(20, -20)
+                plt.plot(x_data, y_data, color='blue', linewidth=1)
+                plt.title("Days elapsed: {days}   Hours elapsed: {hours} ,    SimTime = {simtime} steps" \
+                          .format(days=days, hours=hours, simtime=simtime))
+                plt.xlabel("Position east (million meters)")
+                plt.ylabel("Position down (million meters)")
+                plt.pause(0.001)
+        plt.show()
 
     if args.returnECIdata and args.returnTORdata:
         # position
@@ -288,6 +340,16 @@ def runTest(args: testArgs):
         rates[2][1].set_title("orbital roll dot")
         rates[2][1].set(xlabel="time (s)")
 
+        # speed and alt
+        fig, speed = plt.subplots(2, 1, sharex='all')
+        speed[0].plot(t_data, data_speed)
+        speed[0].set_title("speed")
+        speed[1].plot(t_data, data_altitude, label="actual altitude")
+        speed[1].plot(t_data, data_set_alt, label="set orbit altitude")
+        speed[1].set_title("altitude")
+        speed[1].legend()
+        speed[1].set(xlabel="time (s)")
+        plt.show()
 
     elif args.returnECIdata:
         # pn, pe, pd
@@ -330,6 +392,16 @@ def runTest(args: testArgs):
         rates[2].set_title("r")
         rates[2].set(xlabel="time (s)")
 
+        # speed and alt
+        fig, speed = plt.subplots(2, 1, sharex='all')
+        speed[0].plot(t_data, data_speed)
+        speed[0].set_title("speed")
+        speed[1].plot(t_data, data_altitude, label="actual altitude")
+        speed[1].plot(t_data, data_set_alt, label="set orbit altitude")
+        speed[1].set_title("altitude")
+        speed[1].legend()
+        speed[1].set(xlabel="time (s)")
+        plt.show()
 
     elif args.returnTORdata:
         # position orbital
@@ -372,6 +444,17 @@ def runTest(args: testArgs):
         rates[2].set_title("orbital roll dot")
         rates[2].set(xlabel="time (s)")
 
+        # speed and alt
+        fig, speed = plt.subplots(2, 1, sharex='all')
+        speed[0].plot(t_data, data_speed)
+        speed[0].set_title("speed")
+        speed[1].plot(t_data, data_altitude, label="actual altitude")
+        speed[1].plot(t_data, data_set_alt, label="set orbit altitude")
+        speed[1].set_title("altitude")
+        speed[1].legend()
+        speed[1].set(xlabel="time (s)")
+        plt.show()
+
     if args.returnCntrlData:
         # thruster controls
         fig, thrust = plt.subplots(3, 1, sharex='all')
@@ -392,18 +475,8 @@ def runTest(args: testArgs):
         reaction[2].plot(t_data, data_reactionZ)
         reaction[2].set_title("reaction z")
         reaction[2].set(xlabel="time (s)")
+        plt.show()
 
-    # speed and alt
-    fig, speed = plt.subplots(2, 1, sharex='all')
-    speed[0].plot(t_data, data_speed)
-    speed[0].set_title("speed")
-    speed[1].plot(t_data, data_altitude, label="actual altitude")
-    speed[1].plot(t_data, data_set_alt, label="set orbit altitude")
-    speed[1].set_title("altitude")
-    speed[1].legend()
-    speed[1].set(xlabel="time (s)")
-
-    plt.show()
     return
 
 
@@ -413,11 +486,15 @@ def runTest(args: testArgs):
 # An example test would be placing the satellite at an orbit of 400km, turning off the controls and disturbances
 # and observing as gravity causes it to plummet towards the earth
 
-args = testArgs()
+#SPEED AND POSITION VECTORS MUST BE PUT INSIDE INIT AS THEY ARE USED WITHIN THE INITIALIZATION
+args = testArgs(orbitVector=[[0],[0],[-(400000+VPC.radius_e)]],
+                orbitStartPosNED=[[0], [400000+VPC.radius_e], [0]])
+
 args.returnAnimationNE = 1
 args.gravityCntrl = 1
 args.controlsCntrl = 1
-args.dT = 100*50
-args.time = 100*8640
-args.startOrbitalSpeed = 0
+args.dT = 50
+args.time = 86400
 runTest(args)
+
+
