@@ -9,7 +9,7 @@ dT = 1/100	# Time step for simulation
 
 # ** we will probably want to have a reference point for NED along path of the origin **
 # ** reference point would have a pd of zero, so the altitude of the sat will be -pd **
-InitialU = 0.0	# [m/s]
+InitialU = 0	# [m/s]
 InitialV = 0.0	# [m/s]
 InitialW = 0.0	# [m/s]
 InitialNorth = 0.0  # displacement to north [m]
@@ -17,12 +17,12 @@ InitialEast = 0.0   # displacement to east [m]
 InitialDown = 0.0	 # [m], negative is above ground
 InitialYawAngle = math.radians(0.0)	# initial heading angle [rad]
 # Initial components for the moon
-MoonInitialU = 0.0	# [m/s]
-MoonInitialV = 0.0	# [m/s]
-MoonInitialW = 0.0	# [m/s]
+MoonInitialU = 1022	# [m/s]
+MoonInitialV = 0	# [m/s]
+MoonInitialW = 0	# [m/s]
 MoonInitialNorth = 0.0  # displacement to north [m]
 MoonInitialEast = 0.0   # displacement to east [m]
-MoonInitialDown = 0.0	 # [m], negative is above ground
+MoonInitialDown = 384.4e6	 # [m], negative is above ground
 
 
 
@@ -30,6 +30,7 @@ MoonInitialDown = 0.0	 # [m], negative is above ground
 rho = 0.00  # [kg / m^3]
 G = 6.67e-11  # Gravitational Constant [N*m^2/kg^2]
 radius_e = 6.37101e6  # radius of the earth [m]
+radius_m = 1.7371e6   # radius of the moon [m]
 mass_e = 5.972e24  # mass of earth [kg]
 mass_m = 7.34767309e22  # mass of moon [kg]
 

@@ -173,5 +173,3 @@ class MoonGravitationalModel():
 
         return
 
-
-
