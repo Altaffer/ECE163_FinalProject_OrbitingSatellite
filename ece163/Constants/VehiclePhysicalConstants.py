@@ -16,6 +16,14 @@ InitialNorth = 0.0  # displacement to north [m]
 InitialEast = 0.0   # displacement to east [m]
 InitialDown = 0.0	 # [m], negative is above ground
 InitialYawAngle = math.radians(0.0)	# initial heading angle [rad]
+# Initial components for the moon
+MoonInitialU = 0.0	# [m/s]
+MoonInitialV = 0.0	# [m/s]
+MoonInitialW = 0.0	# [m/s]
+MoonInitialNorth = 0.0  # displacement to north [m]
+MoonInitialEast = 0.0   # displacement to east [m]
+MoonInitialDown = 0.0	 # [m], negative is above ground
+
 
 
 # ENVIORNMENT PROFILE
@@ -23,6 +31,9 @@ rho = 0.00  # [kg / m^3]
 G = 6.67e-11  # Gravitational Constant [N*m^2/kg^2]
 radius_e = 6.37101e6  # radius of the earth [m]
 mass_e = 5.972e24  # mass of earth [kg]
+mass_m = 7.34767309e22  # mass of moon [kg]
+
+
 
 # SPACECRAFT PROFILE FOR: insert_spacecraft_name_here
 mass = 10.165  # [kg]
@@ -68,3 +79,9 @@ moonAcc = 7.3e-6  # accleration disturbance caused by moon (mean) [m/s^2]
 sunAcc = 3.5e-6  # accleration disturbance caused by sun (mean) [m/s^2]
 jupAcc = 5.2e-11  # accleration disturbance caused by jupiter (max) [m/s^2]
 radiationAcc = 4.7e-6  # acceleration caused by radiation pressure [(m/s^2) * (m/A)]
+
+mass_am = 1.74425423 * ( 10 ** -24 )  # mass of air molecule [kg]
+rho_0 = mass_am * 1.225  # mass of air molecule * density of air at surface of earth
+cd = 2.2  # drag coefficient [dimensionless]
+k_b = 1.38064852 * 10 ** -23 # Boltzmann constant [m^2 kg/ s^2 K]
+T = 273.15 # absolute temperature [K]

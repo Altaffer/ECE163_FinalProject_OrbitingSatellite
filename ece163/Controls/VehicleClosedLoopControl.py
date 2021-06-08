@@ -405,12 +405,6 @@ class ControlGains():
         self.Yaw_ki = Yaw_ki
         self.Yaw_kd = Yaw_kd
 
-        self.P_kp = P_kp
-        self.Q_kp = Q_kp
-        self.R_kp = R_kp
-
-        return
-
 
 class VehicleClosedLoopControl():
     def __init__(self,  dT=0.01, OrbitVector = [[0],[0],[-(400000+VPC.radius_e)]]):
@@ -448,10 +442,10 @@ class VehicleClosedLoopControl():
     def setControlGains(self, CG:ControlGains):
         self.thrustersFromVTangent.setPIGains(dT=self.dT, kp = CG.Vtan_kp, ki=CG.Vtan_ki, lowLimit=-1, highLimit=1)
         
-        self.VOffsetFromOffset.setPDGains(kp=CG.Offset_kp, kd=CG.Offset_kd, lowLimit=-100, highLimit=100)
+        self.VOffsetFromOffset.setPDGains(kp=CG.Offset_kp, kd=CG.Offset_kd, lowLimit=-1000, highLimit=1000)
         self.thrustersFromVoffset.setPGains(kp=CG.Voffset_kp, lowLimit=-1, highLimit=1)
 
-        self.VRadialFromRadial.setPDGains(kp=CG.Radial_kp, kd=CG.Radial_kd, lowLimit=-100, highLimit=100)
+        self.VRadialFromRadial.setPDGains(kp=CG.Radial_kp, kd=CG.Radial_kd, lowLimit=-10000, highLimit=10000)
         self.thrustersFromVRadial.setPGains(kp=CG.Vradial_kp, lowLimit=-1, highLimit=1)
 
         self.reactorXFromRoll.setPIDGains(dT=self.dT, kp=CG.Roll_kp,kd=CG.Roll_kd,ki=CG.Roll_ki, lowLimit=-1, highLimit=1)
@@ -525,7 +519,7 @@ class VehicleClosedLoopControl():
     def UpdateControlCommands(self, vehicleState:States.vehicleState):
         R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
         thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = self.controlPosition(vehicleState,R_e2o, R_o2e)
-        reactorXcontrol, reactorYcontrol, reactorZcontrol    = self.controlOrientation(vehicleState,R_e2o, R_o2e)
+        reactorXcontrol,  reactorYcontrol,  reactorZcontrol  = self.controlOrientation(vehicleState,R_e2o, R_o2e)
 
         # formulating control object
         controls = Inputs.controlInputs()

@@ -7,14 +7,16 @@ import math
 from ..Utilities import MatrixMath as mm
 from ..Utilities import Rotations as Rotations
 from ..Constants import VehiclePhysicalConstants as VPC
+from ..Modeling import MoonGravitationalModel as MGM
 import numpy as np
 
 def distanceFromMoon(state):
     """Calculates the vector between the Moon and the satellite by inputting the NED positions of the satellite
     throughout orbit using Earth distances as reference points. Returns normalized vector.
     """
+    MoonState = MGM.MoonGravitationalModel.MoonDynamicsModel.state
     #finding the difference between earthMoon and earthSatellite(state variables) to find distance
-    moonSat = mm.subtract(VPC.earthMoon, [[state.pn], [state.pe], [state.pd]])
+    moonSat = mm.subtract([[MoonState.pn], [MoonState.pe], [MoonState.pd]], [[state.pn], [state.pe], [state.pd]])
     #calculating the norm
     norm = mm.scalarDivide(np.linalg.norm(moonSat), moonSat)
     #rotation to body frame
@@ -69,3 +71,18 @@ def satSurfaceArea(state):
     surf_area = math.fabs(A*dot_product)
 
     return surf_area
+
+def airdrag(state):
+    """Calculates the airdrag of the satellite
+    """
+    # area of the satellite
+    A = VPC.lengthY * VPC.lengthX
+
+    # density
+    rho = VPC.rho_0 * math.exp( ( ( VPC.G * VPC.mass_e * VPC.mass_am ) / ( VPC.k_b *  VPC.T ) ) *
+                                (( 1 / state.pd ) - ( 1 / VPC.radius_e )))
+
+    # drag force
+    F_drag = 0.5 * rho * ( state.Va ** 2 ) * VPC.cd * A
+
+    return F_drag
