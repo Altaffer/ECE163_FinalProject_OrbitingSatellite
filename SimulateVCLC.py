@@ -8,7 +8,7 @@ from ece163.Constants import VehiclePhysicalConstants as VPC
 from ece163.Modeling import VehicleGravitationalModel as VGM
 from ece163.Controls import VehicleClosedLoopControl as VCLC
 from ece163.Utilities import OrbitalFrame as OF
-from matplotlib import pyplot  as plt
+from matplotlib import pyplot as plt
 
 
 # TO RUN TESTS/SIMULATIONS, SCROLL TO THE BOTTOM TO INPUT A TEST
@@ -16,8 +16,8 @@ from matplotlib import pyplot  as plt
 class testArgs():
     def __init__(self, dT=50, time=86400, startOrbitalSpeed=7000, orbitVector=[[0],[0],[-(400000+VPC.radius_e)]], \
                  orbitStartPosNED=[[0], [400000+VPC.radius_e], [0]],  controlGains = VCLC.ControlGains(), \
-                 gravityCntrl=0, controlsCntrl=1, disturbancesCntrl=0, returnECIdata=1, returnTORdata=1,
-                 returnCntrlData=1):
+                 gravityCntrl=0, controlsCntrl=0, disturbancesCntrl=0, returnECIdata=0, returnTORdata=0,
+                 returnCntrlData=0, returnAnimationNE=0, returnAnimationED=0):
         self.dT = dT  # time step between each plotted point in seconds
         # this is different from the VGM time step
         # a dT of 1 would have 100 physics steps
@@ -39,13 +39,17 @@ class testArgs():
         # set to 0 to ignore
         self.returnCntrlData = returnCntrlData  # set to 1 to return plots of the controls
         # set to zero to ignore
+        self.returnAnimationNE = returnAnimationNE  # set to 1 to return an animation of NE plane
+        # set to zero to ignore
+        self.returnAnimationED = returnAnimationED  # set to 1 to return an animation of ED plane
+        # set to zero to ignore
 
         #to find the initial speed of the craft in uvw to initialize the VGM, rotate to orbital frame speed to body
         state = States.vehicleState(pn=self.orbitStartPosNED[0][0], pe=self.orbitStartPosNED[1][0],
                                     pd=self.orbitStartPosNED[2][0])  # create a temporary state with NED to get rots
         Reci2orbital, Rorbital2eci = OF.orbitalFrameR(self.orbitVector, state)  # get rots for eci and orbit
         Rbody2orbital, Rorbital2body = OF.getBodyOrbitalRotationMatrices(Reci2orbital, Rorbital2eci, state)  # get body rotations
-        self.speedUVW = mm.multiply(Rorbital2body, [[startOrbitalSpeed], [0], [0]])  # get the uvw speed from orbit
+        self.speedUVW = mm.multiply(Rorbital2body, [[self.startOrbitalSpeed], [0], [0]])  # get the uvw speed from orbit
 
         self.controlGains = controlGains
 
@@ -63,6 +67,8 @@ def runTest(args: testArgs):
                                               gravity=args.gravityCntrl, controls=args.controlsCntrl,
                                               disturbances=args.disturbancesCntrl)
 
+    gravModel.getVehicleDynamicsModel().dT = args.dT
+
     clControl = VCLC.VehicleClosedLoopControl(dT=args.dT, OrbitVector=args.orbitVector)
     clControl.setControlGains(args.controlGains)
 
@@ -76,10 +82,10 @@ def runTest(args: testArgs):
     t_data = [i * dT for i in range(n_steps)]
 
     # state data
+    data_pn = [0 for i in range(n_steps)]
+    data_pe = [0 for i in range(n_steps)]
+    data_pd = [0 for i in range(n_steps)]
     if args.returnECIdata:
-        data_pn = [0 for i in range(n_steps)]
-        data_pe = [0 for i in range(n_steps)]
-        data_pd = [0 for i in range(n_steps)]
         data_u = [0 for i in range(n_steps)]
         data_v = [0 for i in range(n_steps)]
         data_w = [0 for i in range(n_steps)]
@@ -124,10 +130,12 @@ def runTest(args: testArgs):
         # ex: data[i] = gravModel.getVehicleState().pd   for the height
 
         # get state data
+
+        data_pn[i] = gravModel.getVehicleState().pn
+        data_pe[i] = gravModel.getVehicleState().pe
+        data_pd[i] = gravModel.getVehicleState().pd
+
         if args.returnECIdata:
-            data_pn[i] = gravModel.getVehicleState().pn
-            data_pe[i] = gravModel.getVehicleState().pe
-            data_pd[i] = gravModel.getVehicleState().pd
 
             data_u[i] = gravModel.getVehicleState().u
             data_v[i] = gravModel.getVehicleState().v
@@ -178,6 +186,92 @@ def runTest(args: testArgs):
         gravModel.Update(controls)
 
     # PLOT DATA
+    if args.returnAnimationNE:
+        # animation for NE plane
+        x_data = []
+        y_data = []
+
+        earth = plt.Circle((0, 0), VPC.radius_e / 1e6, color='green', linewidth=1)
+
+        days = 0
+        hours = 0
+        mins = 0
+        secs = 0
+        simsecs = 0
+        simtime = 0
+
+        for i in range(n_steps):
+            # collect data
+            x_data.append(data_pe[i] / 1e6)
+            y_data.append(data_pn[i] / 1e6)
+
+            # calculate days elapsed
+            if hours == 24:
+                days += 1
+                hours = 0
+            # calculate hours elapsed
+            if secs >= 3600:
+                hours += 1
+                secs -= 3600
+            secs += args.dT
+            simtime += 1
+
+            if i % 8 == 0:
+                # plot earth, set graph limits, set title, plot data
+                plt.gca().add_patch(earth)
+                plt.xlim(-20, 20)
+                plt.ylim(-20, 20)
+                plt.plot(x_data, y_data, color='blue', linewidth=1)
+                plt.title("Days elapsed: {days}   Hours elapsed: {hours} ,    SimTime = {simtime} steps" \
+                          .format(days=days, hours=hours, simtime=simtime))
+                plt.xlabel("Position east (million meters)")
+                plt.ylabel("Position north (million meters)")
+                plt.pause(0.001)
+        plt.show()
+
+    if args.returnAnimationED:
+        # animation for NE plane
+        x_data = []
+        y_data = []
+
+        earth = plt.Circle((0, 0), VPC.radius_e / 1e6, color='green', linewidth=1)
+
+        days = 0
+        hours = 0
+        mins = 0
+        secs = 0
+        simsecs = 0
+        simtime = 0
+
+        for i in range(n_steps):
+            # collect data
+            x_data.append(data_pe[i] / 1e6)
+            y_data.append(data_pd[i] / 1e6)
+
+            # calculate days elapsed
+            if hours == 24:
+                days += 1
+                hours = 0
+            # calculate hours elapsed
+            if secs >= 3600:
+                hours += 1
+                secs -= 3600
+            secs += args.dT
+            simtime += 1
+
+            if i % 8 == 0:
+                # plot earth, set graph limits, set title, plot data
+                plt.gca().add_patch(earth)
+                plt.xlim(-20, 20)
+                plt.ylim(20, -20)
+                plt.plot(x_data, y_data, color='blue', linewidth=1)
+                plt.title("Days elapsed: {days}   Hours elapsed: {hours} ,    SimTime = {simtime} steps" \
+                          .format(days=days, hours=hours, simtime=simtime))
+                plt.xlabel("Position east (million meters)")
+                plt.ylabel("Position down (million meters)")
+                plt.pause(0.001)
+        plt.show()
+
     if args.returnECIdata and args.returnTORdata:
         # position
         fig, points = plt.subplots(3, 2, sharex='all')
@@ -246,6 +340,16 @@ def runTest(args: testArgs):
         rates[2][1].set_title("orbital roll dot")
         rates[2][1].set(xlabel="time (s)")
 
+        # speed and alt
+        fig, speed = plt.subplots(2, 1, sharex='all')
+        speed[0].plot(t_data, data_speed)
+        speed[0].set_title("speed")
+        speed[1].plot(t_data, data_altitude, label="actual altitude")
+        speed[1].plot(t_data, data_set_alt, label="set orbit altitude")
+        speed[1].set_title("altitude")
+        speed[1].legend()
+        speed[1].set(xlabel="time (s)")
+        plt.show()
 
     elif args.returnECIdata:
         # pn, pe, pd
@@ -288,6 +392,16 @@ def runTest(args: testArgs):
         rates[2].set_title("r")
         rates[2].set(xlabel="time (s)")
 
+        # speed and alt
+        fig, speed = plt.subplots(2, 1, sharex='all')
+        speed[0].plot(t_data, data_speed)
+        speed[0].set_title("speed")
+        speed[1].plot(t_data, data_altitude, label="actual altitude")
+        speed[1].plot(t_data, data_set_alt, label="set orbit altitude")
+        speed[1].set_title("altitude")
+        speed[1].legend()
+        speed[1].set(xlabel="time (s)")
+        plt.show()
 
     elif args.returnTORdata:
         # position orbital
@@ -330,6 +444,17 @@ def runTest(args: testArgs):
         rates[2].set_title("orbital roll dot")
         rates[2].set(xlabel="time (s)")
 
+        # speed and alt
+        fig, speed = plt.subplots(2, 1, sharex='all')
+        speed[0].plot(t_data, data_speed)
+        speed[0].set_title("speed")
+        speed[1].plot(t_data, data_altitude, label="actual altitude")
+        speed[1].plot(t_data, data_set_alt, label="set orbit altitude")
+        speed[1].set_title("altitude")
+        speed[1].legend()
+        speed[1].set(xlabel="time (s)")
+        plt.show()
+
     if args.returnCntrlData:
         # thruster controls
         fig, thrust = plt.subplots(3, 1, sharex='all')
@@ -350,18 +475,8 @@ def runTest(args: testArgs):
         reaction[2].plot(t_data, data_reactionZ)
         reaction[2].set_title("reaction z")
         reaction[2].set(xlabel="time (s)")
+        plt.show()
 
-    # speed and alt
-    fig, speed = plt.subplots(2, 1, sharex='all')
-    speed[0].plot(t_data, data_speed)
-    speed[0].set_title("speed")
-    speed[1].plot(t_data, data_altitude, label="actual altitude")
-    speed[1].plot(t_data, data_set_alt, label="set orbit altitude")
-    speed[1].set_title("altitude")
-    speed[1].legend()
-    speed[1].set(xlabel="time (s)")
-
-    plt.show()
     return
 
 
@@ -371,5 +486,15 @@ def runTest(args: testArgs):
 # An example test would be placing the satellite at an orbit of 400km, turning off the controls and disturbances
 # and observing as gravity causes it to plummet towards the earth
 
-args = testArgs()
+#SPEED AND POSITION VECTORS MUST BE PUT INSIDE INIT AS THEY ARE USED WITHIN THE INITIALIZATION
+args = testArgs(orbitVector=[[0],[0],[-(400000+VPC.radius_e)]],
+                orbitStartPosNED=[[0], [400000+VPC.radius_e], [0]])
+
+args.returnAnimationNE = 1
+args.gravityCntrl = 1
+args.controlsCntrl = 1
+args.dT = 50
+args.time = 86400
 runTest(args)
+
+
