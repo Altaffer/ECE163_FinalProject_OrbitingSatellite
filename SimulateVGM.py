@@ -1,6 +1,7 @@
 import math
 from ece163.Containers import States
 from ece163.Containers import Inputs
+from ece163.Containers import Controls
 from ece163.Modeling import VehicleDynamicsModel
 from ece163.Utilities import MatrixMath as mm
 from ece163.Utilities import Rotations
@@ -360,7 +361,9 @@ args.time = 86400
 args.startPn = 400e3 + VPC.radius_e
 args.startV = 7500
 args.gravityCntrl = 1
-args.disturbancesCntrl = 1
+args.controlsCntrl = 1
+args.controlSettings = Inputs.controlInputs(ThrusterZ=1)
+args.disturbancesCntrl = 0
 args.returnAnimationED = 1
 args.returnGraphs = 0
 runTest(args)

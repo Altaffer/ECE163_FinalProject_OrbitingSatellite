@@ -517,18 +517,25 @@ class VehicleClosedLoopControl():
 
 
     def UpdateControlCommands(self, vehicleState:States.vehicleState):
+        # class to be returned
+        controls = Inputs.controlInputs()
+
         R_e2o, R_o2e = of.orbitalFrameR(self.OrbitVector, vehicleState)
         thrusterXcontrol, thrusterYcontrol, thrusterZcontrol = self.controlPosition(vehicleState,R_e2o, R_o2e)
-        reactorXcontrol,  reactorYcontrol,  reactorZcontrol  = self.controlOrientation(vehicleState,R_e2o, R_o2e)
+
+        if self.dT <= 0.01:
+            reactorXcontrol,  reactorYcontrol,  reactorZcontrol  = self.controlOrientation(vehicleState,R_e2o, R_o2e)
+
+            # formulating control object
+            controls.ReactionX = reactorXcontrol
+            controls.ReactionY = reactorYcontrol
+            controls.ReactionZ = reactorZcontrol
 
         # formulating control object
-        controls = Inputs.controlInputs()
         controls.ThrusterX = thrusterXcontrol
         controls.ThrusterY = thrusterYcontrol
         controls.ThrusterZ = thrusterZcontrol
 
-        controls.ReactionX = reactorXcontrol
-        controls.ReactionY = reactorYcontrol
-        controls.ReactionZ = reactorZcontrol
+
 
         return controls
