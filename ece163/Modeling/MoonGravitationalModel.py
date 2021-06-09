@@ -37,7 +37,7 @@ class MoonGravitationalModel():
         self.initialW = initialW
 
         #create a dynamics model to function on
-        self.MoonDynamicsModel = VehicleDynamicsModel.VehicleDynamicsModel(initialNorth=self.initialNorth,
+        self.MoonDynamicsModel = MoonDynamicsModel.MoonDynamicsModel(initialNorth=self.initialNorth,
                                                                               initialEast=self.initialEast,
                                                                               initialDown=self.initialDown,
                                                                               initialU = self.initialU,
@@ -77,12 +77,15 @@ class MoonGravitationalModel():
         Fg_inertial = mm.scalarMultiply(Fg, moon_to_earth_norm)
 
         #rotate into the moon body frame
-        Fg_body = mm.multiply(Rotations.euler2DCM(state.yaw, state.pitch, state.roll), Fg_inertial)
+        #Fg_body = mm.multiply(Rotations.euler2DCM(state.yaw, state.pitch, state.roll), Fg_inertial)
 
         #now partition the body frame forces into the class to return
-        gravityForces.Fx = Fg_body[0][0]
-        gravityForces.Fy = Fg_body[1][0]
-        gravityForces.Fz = Fg_body[2][0]
+        # gravityForces.Fx = Fg_body[0][0]
+        # gravityForces.Fy = Fg_body[1][0]
+        # gravityForces.Fz = Fg_body[2][0]
+        gravityForces.Fx = Fg_inertial[0][0]
+        gravityForces.Fy = Fg_inertial[1][0]
+        gravityForces.Fz = Fg_inertial[2][0]
 
         return gravityForces
 
