@@ -1,6 +1,6 @@
 """
 Author: Richard Owens (rivowens@ucsc.edu)
-This module is where all of the vehicle dynamics are computed for the simulation. It includes the kinematics of
+This module is where all of the moon dynamics are computed for the simulation. It includes the kinematics of
 both the translational and rotational dynamics. Included are both the derivative, and the integration functions,
 and the rotations of forces to the body frame.
 """
@@ -11,18 +11,19 @@ from ..Utilities import MatrixMath as mm
 from ..Utilities import Rotations
 from ..Constants import VehiclePhysicalConstants as VPC
 
-class VehicleDynamicsModel():
-    def __init__(self, dT=VPC.dT, initialNorth=VPC.InitialNorth, initialEast=VPC.InitialEast, initialDown=VPC.InitialDown,
-                 initialU=VPC.InitialU,initialV=VPC.InitialV,initialW=VPC.InitialW):
+class MoonDynamicsModel():
+    def __init__(self, dT=VPC.dT, initialNorth=VPC.MoonInitialNorth, initialEast=VPC.MoonInitialEast,
+                 initialDown=VPC.MoonInitialDown, initialU=VPC.MoonInitialU,initialV=VPC.MoonInitialV,
+                 initialW=VPC.MoonInitialW):
         """
         def __init__(self, dT=VPC.dT): Initializes the class, and sets the time step (needed for Rexp and integration).
         Should keep track of the state and the state derivative internally.
 
         Parameters
         dT – defaults to VPC.dT
-        initialNorth - initial north position of the vehicle [m]
-        initialEast - initial east position of the vehicle [m]
-        initialSouth - initial south position of the vehicle [m]
+        initialNorth - initial north position of the moon [m]
+        initialEast - initial east position of the moon [m]
+        initialSouth - initial south position of the moon [m]
 
         Returns
         none
@@ -142,7 +143,7 @@ class VehicleDynamicsModel():
 
         Parameters
         dT – time step [sec]
-        state – the vehicle state, in the form of a States.vehicleState object
+        state – the moon state, in the form of a States.vehicleState object
         dot – the state derivative, in the form of a States.vehicleState object
 
         Returns
@@ -187,7 +188,7 @@ class VehicleDynamicsModel():
         """
         Function that implements the integration such that the state is updated using the forces and moments passed in
         as the arguments (dT is internal from the member). State is updated in place (self.state is updated). Use
-        getVehicleState to retrieve state. Time step is defined in VehiclePhyscialConstants.py
+        getmoonState to retrieve state. Time step is defined in VehiclePhyscialConstants.py
 
         Parameters
         forcesMoments – forces [N] and moments [N-m] defined in forcesMoments class
@@ -216,7 +217,7 @@ class VehicleDynamicsModel():
         the current time derivative, in the form of a States.vehicleState object
         """
 
-        #the vehicle state to be returned
+        #the moon state to be returned
         der = States.vehicleState()
 
         #derive the position points - equation 5
@@ -233,7 +234,7 @@ class VehicleDynamicsModel():
                    [-state.q, state.p, 0]]
         Fb = [[forcesMoments.Fx], [forcesMoments.Fy], [forcesMoments.Fz]]
 
-        d_vel = mm.subtract(mm.scalarMultiply(1/VPC.mass, Fb),
+        d_vel = mm.subtract(mm.scalarMultiply(1/VPC.mass_m, Fb),
                             mm.multiply(omega_x, velocity))
 
         der.u = d_vel[0][0]
@@ -271,9 +272,9 @@ class VehicleDynamicsModel():
 
         return der
 
-    def getVehicleDerivative(self):
+    def getMoonDerivative(self):
         """
-        Getter method to read the vehicle state time derivative
+        Getter method to read the moon state time derivative
 
         Returns
         dot ( an instance of Containers.States.vehicleState)
@@ -281,19 +282,19 @@ class VehicleDynamicsModel():
 
         return self.dot
 
-    def getVehicleState(self):
+    def getMoonState(self):
         """
-        Getter method to read the vehicle state
+        Getter method to read the moon state
 
         Returns
-        state (from class vehicleState)
+        state (from class Moon State)
         """
 
         return self.state
 
     def reset(self):
         """
-        Reset the Vehicle state to initial conditions
+        Reset the Moon state to initial conditions
 
         Returns
         none
@@ -326,9 +327,9 @@ class VehicleDynamicsModel():
 
         return
 
-    def setVehicleDerivative(self, dot):
+    def setMoonDerivative(self, dot):
         """
-        Setter method to write the vehicle state time derivative
+        Setter method to write the moon state time derivative
 
         Parameters
         state – dot to be set (should be an instance of Containers.States.vehicleState)
@@ -341,9 +342,9 @@ class VehicleDynamicsModel():
 
         return
 
-    def setVehicleState(self, state):
+    def setMoonState(self, state):
         """
-        Setter method to write the vehicle state
+        Setter method to write the moon state
 
         Parameters
         state – state to be set ( an instance of Containers.States.vehicleState)
