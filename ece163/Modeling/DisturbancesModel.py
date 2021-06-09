@@ -82,8 +82,7 @@ def airdrag(state):
     A = VPC.lengthY * VPC.lengthX
 
     # density
-    rho = VPC.rho_0 * math.exp( ( ( VPC.G * VPC.mass_e * VPC.mass_am ) / ( VPC.k_b *  VPC.T ) ) *
-                                (( 1 / state.pd ) - ( 1 / VPC.radius_e )))
+    rho = 1.225 * math.exp( (-0.0001) * state.pd ) # density of air at surface of the earth * e^(-0.0001 * height)
 
     # drag force
     F_drag = 0.5 * rho * ( state.Va ** 2 ) * VPC.cd * A
