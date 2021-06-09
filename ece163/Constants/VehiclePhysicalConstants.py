@@ -81,8 +81,4 @@ sunAcc = 3.5e-6  # accleration disturbance caused by sun (mean) [m/s^2]
 jupAcc = 5.2e-11  # accleration disturbance caused by jupiter (max) [m/s^2]
 radiationAcc = 4.7e-6  # acceleration caused by radiation pressure [(m/s^2) * (m/A)]
 
-mass_am = 1.74425423 * ( 10 ** -24 )  # mass of air molecule [kg]
-rho_0 = mass_am * 1.225  # mass of air molecule * density of air at surface of earth
 cd = 2.2  # drag coefficient [dimensionless]
-k_b = 1.38064852 * 10 ** -23 # Boltzmann constant [m^2 kg/ s^2 K]
-T = 273.15 # absolute temperature [K]
