@@ -102,7 +102,8 @@ class MoonGravitationalModel():
         totalForces = Inputs.forcesMoments()
 
         #update grav, thrust, reaction, and disturbance forces and add to total forces. Check kwargs
-        totalForces = totalForces + self.gravityForces(state)
+        if self.gravity:
+            totalForces = totalForces + self.gravityForces(state)
         return totalForces
 
     def Update(self):
