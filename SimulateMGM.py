@@ -48,6 +48,8 @@ def runTest(args:testArgs):
     gravModel.getMoonState().pitch = args.startPitch
     gravModel.getMoonState().roll = args.startRoll
 
+    gravModel.getMoonDynamicsModel().dT = args.dT
+
     gravModel.getMoonState().R = Rotations.euler2DCM(args.startYaw, args.startPitch, args.startRoll)
     # GRAPH VARIOUS STATE VALUES OVER 10 SECONDS
     # define time steps and total time
@@ -191,7 +193,49 @@ def runTest(args:testArgs):
         grav[2].set_title("grav acc z")
         grav[2].set(xlabel="time (s)")
 
-    #plt.show()
+    plt.show()
+
+    #animation for NE plane
+    x_data = []
+    y_data = []
+
+    earth = plt.Circle((0, 0), VPC.radius_e / 1e6, color='green', linewidth=1)
+
+    days = 0
+    hours = 0
+    mins = 0
+    secs = 0
+    simsecs = 0
+    simtime = 0
+
+    for i in range(n_steps):
+        #collect data
+        x_data.append(data_pe[i] / 1e6)
+        y_data.append(data_pn[i] / 1e6)
+
+        # calculate days elapsed
+        if hours == 24:
+            days += 1
+            hours = 0
+        # calculate hours elapsed
+        if secs >= 3600:
+            hours += 1
+            secs -= 3600
+        secs += args.dT
+        simtime += 1
+
+        if i % 20 == 0:
+            #plot earth, set graph limits, set title, plot data
+            plt.gca().add_patch(earth)
+            plt.xlim(-600, 600)
+            plt.ylim(-600, 600)
+            plt.plot(x_data, y_data, color='blue', linewidth=1)
+            plt.title("Days elapsed: {days}   Hours elapsed: {hours} ,    SimTime = {simtime} steps" \
+                         .format(days=days, hours=hours, simtime=simtime))
+            plt.xlabel("Position east (million meters)")
+            plt.ylabel("Position north (million meters)")
+            plt.pause(0.001)
+    plt.show()
     return
 
 # A given test can be run by constructing a testArgs class and passing it into the runTest function
@@ -203,7 +247,8 @@ def runTest(args:testArgs):
 args = testArgs()
 args.dT = 50
 args.time = 86400
-args.startPn = 400e3 + VPC.radius_e
+args.startPe = 384e6 + VPC.radius_e
+args.startU = 1022
 args.gravityCntrl = 1
 runTest(args)
 

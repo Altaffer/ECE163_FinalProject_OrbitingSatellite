@@ -12,6 +12,7 @@ from ..Modeling import VehicleDynamicsModel
 from ..Utilities import MatrixMath as mm
 from ..Utilities import Rotations
 from ..Constants import VehiclePhysicalConstants as VPC
+from ..Modeling import MoonDynamicsModel
 
 class MoonGravitationalModel():
     def __init__(self, initialNorth=VPC.MoonInitialNorth, initialEast=VPC.MoonInitialEast,
